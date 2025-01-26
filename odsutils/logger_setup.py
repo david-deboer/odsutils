@@ -3,7 +3,8 @@ import logging
 
 CONSOLE_HANDLER_NAME = 'Console'
 FILE_HANDLER_NAME = 'File'
-LOG_FILENAME = 'odslog'
+from . import LOG_FILENAME
+
 
 class Logger:
     def __init__(self, logger, conlog='INFO', filelog=False, log_filename=LOG_FILENAME, path=None):

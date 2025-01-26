@@ -10,3 +10,4 @@ except ImportError:
     pass
 
 from . import ods_engine
+LOG_FILENAME = 'odslog'

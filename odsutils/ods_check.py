@@ -2,7 +2,7 @@ from . import ods_tools as tools
 from . import logger_setup, __version__
 from astropy.time import TimeDelta
 import logging
-
+from . import LOG_FILENAME
 
 logger = logging.getLogger(__name__)
 logger.setLevel('DEBUG')
@@ -21,7 +21,7 @@ class ODSCheck:
             Default alert
 
         """
-        self.logset = logger_setup.Logger(logger, conlog=alert, filelog=filelog, log_filename=logger_setup.LOG_FILENAME, path=None)
+        self.logset = logger_setup.Logger(logger, conlog=alert, filelog=filelog, log_filename=LOG_FILENAME, path=None)
         logger.info(f"{__name__} ver. {__version__}")
         self.standard = standard
 

@@ -3,11 +3,10 @@ from .ods_check import ODSCheck
 from . import ods_instance, logger_setup, __version__
 from . import ods_tools as tools
 import logging
-
+from . import LOG_FILENAME
 
 logger = logging.getLogger(__name__)
 logger.setLevel('DEBUG')
-
 
 class ODS:
     """
@@ -35,7 +34,7 @@ class ODS:
         """
         if quiet is not None:  # For backward compatibility
             output = 'ERROR' if quiet else 'INFO'
-        self.logset = logger_setup.Logger(logger, conlog=output, filelog=filelog, log_filename=logger_setup.LOG_FILENAME, path=None)
+        self.logset = logger_setup.Logger(logger, conlog=output, filelog=filelog, log_filename=LOG_FILENAME, path=None)
         logger.info(f"{__name__} ver. {__version__}")
 
         # ###
