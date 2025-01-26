@@ -3,7 +3,10 @@ import logging
 
 CONSOLE_HANDLER_NAME = 'Console'
 FILE_HANDLER_NAME = 'File'
-from . import LOG_FILENAME
+try:
+    from . import LOG_FILENAME
+except ImportError:
+    LOG_FILENAME = 'default_log_filename'
 
 
 class Logger:
