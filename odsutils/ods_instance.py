@@ -91,6 +91,8 @@ class ODSInstance:
             self.input = ods_input 
         else:
             return False
+        if input_ods_data is None:
+            return False
         self.entries += input_ods_data[self.standard.data_key]  # This is the internal list of ods records
         self.gen_info()
         self.time_format = 'string'
