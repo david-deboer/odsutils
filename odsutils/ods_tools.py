@@ -142,7 +142,7 @@ def get_json_url(url):
     return xxx.json()
 
 
-def listify(x, d={}, sep=','):
+def listify(x, d={}, sep=',', NoneReturn=[]):
     """
     Convert input to list.
 
@@ -154,6 +154,8 @@ def listify(x, d={}, sep=','):
         Default/other values for conversion.
     sep : str
         Separator to use if str
+    NoneReturn : *
+        Return is input is None
     
     Return
     ------
@@ -161,7 +163,7 @@ def listify(x, d={}, sep=','):
 
     """
     if x is None:
-        return []
+        return NoneReturn
     if isinstance(x, list):
         return x
     if isinstance(x, str) and x in d:
@@ -171,42 +173,6 @@ def listify(x, d={}, sep=','):
             sep = ','
         return x.split(sep)
     return [x]
-
-
-def make_time(t):
-    """
-    Parameter
-    ---------
-    t : anything parseable by astropy.time.Time or 'now'
-
-    Return
-    ------
-    astropy.time.Time
-
-    """
-    if t == 'now':
-        return Time.now()
-    try:
-        return Time(t)
-    except ValueError:
-        print("NEED TO DO SOME CHECKING, E.G. timezone aware etc")
-        raise ValueError(f"Error in make_time {t}")
-
-def time2str(t):
-    """
-    Parameter
-    ---------
-    t : Time
-        time to convert
-
-    Return
-    ------
-    str : isoformat string
-
-    """
-    if isinstance(t, str):
-        return t
-    return t.datetime.isoformat(timespec='seconds')
 
 
 def sort_entries(ods, terms, collapse=False, reverse=False):

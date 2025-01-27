@@ -1,4 +1,5 @@
 from . import ods_tools as tools
+from . import ods_timetools as timetools
 from . import logger_setup, __version__
 from astropy.time import TimeDelta
 import logging
@@ -106,8 +107,8 @@ class ODSCheck:
         from numpy import where
 
         standard = self.standard if standard is None else standard
-        start = tools.make_time(rec[standard.start])
-        stop = tools.make_time(rec[standard.stop])
+        start = timetools.interpret_date(rec[standard.start], fmt='Time')
+        stop = timetools.interpret_date(rec[standard.stop], fmt='Time')
         dt = TimeDelta(dt_sec, format='sec')
         times = []
         this_step = start
@@ -116,7 +117,7 @@ class ODSCheck:
             this_step += dt
         if not len(times):
             return times
-        times = tools.make_time(times)
+        times = timetools.interpret_date(times, fmt='Time')
         location = EarthLocation(lat = float(rec[standard.lat]) * u.deg, lon = float(rec[standard.lon]) * u.deg, height = float(rec[standard.ele]) * u.m)
 
         aa = AltAz(location=location, obstime=times)
@@ -158,8 +159,8 @@ class ODSCheck:
             return ods
         adjusted_entries = tools.sort_entries(ods, [ods.standard.start, ods.standard.stop])
         for i in range(len(adjusted_entries) - 1):
-            this_stop = tools.make_time(adjusted_entries[i][ods.standard.stop])
-            next_start = tools.make_time(adjusted_entries[i+1][ods.standard.start])
+            this_stop = timetools.interpret_date(adjusted_entries[i][ods.standard.stop], fmt='Time')
+            next_start = timetools.interpret_date(adjusted_entries[i+1][ods.standard.start], fmt='Time')
             if next_start < this_stop:  # Need to adjust
                 if adjust == 'start':
                     next_start = this_stop + TimeDelta(time_offset_sec, format='sec')
@@ -192,8 +193,8 @@ class ODSCheck:
         ods.make_time()
         sorted_entries = tools.sort_entries(ods.entries, [ods.standard.stop, ods.standard.start])
         dt = TimeDelta(time_step_min * 60.0, format='sec')
-        starting = ods.earliest if starting == 'start' else tools.make_time(starting)
-        stopping = ods.latest if stopping == 'stop' else tools.make_time(stopping)
+        starting = ods.earliest if starting == 'start' else timetools.interpret_date(starting, fmt='Time')
+        stopping = ods.latest if stopping == 'stop' else timetools.interpret_date(stopping, fmt='Time')
         logger.info(f"Checking coverage from {starting} - {stopping}")
         this_time = copy(starting)
         ts = []

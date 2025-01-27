@@ -2,6 +2,7 @@ from copy import copy
 from .ods_check import ODSCheck
 from . import ods_instance, logger_setup, __version__
 from . import ods_tools as tools
+from . import ods_timetools as timetools
 import logging
 from . import LOG_FILENAME
 
@@ -206,7 +207,7 @@ class ODS:
             self.read_ods(read_from, instance_name='check_active')
         else:
             logger.info("Not reading new ODS instance for check_active.")
-        ctime = tools.make_time(ctime)
+        ctime = timetools.interpret_date(ctime, fmt='Time')
         active = []
         for i, entry in enumerate(self.ods['check_active'].entries):
             if entry['src_start_utc'] <= ctime <= entry['src_end_utc']:
@@ -353,7 +354,7 @@ class ODS:
             logger.warning(f"Invalid cull parameter: {cull_by}")
             return
         instance_name = self.get_instance_name(instance_name)
-        cull_time = tools.make_time(cull_time)
+        cull_time = timetools.interpret_date(cull_time, fmt='Time')
         logger.info(f"Culling ODS for {cull_time} by {cull_by}")
         self.ods[instance_name].make_time()
         culled_ods = []

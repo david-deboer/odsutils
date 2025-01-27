@@ -1,6 +1,7 @@
 from copy import copy
 from .ods_standard import Standard
 from . import ods_tools as tools
+from . import ods_timetools as timetools
 from numpy import floor
 
 
@@ -119,8 +120,8 @@ class ODSInstance:
 
         """
         self.make_time()
-        self.earliest = tools.make_time(REF_LATEST_TIME)
-        self.latest = tools.make_time(REF_EARLIEST_TIME)
+        self.earliest = timetools.interpret_date(REF_LATEST_TIME, fmt='Time')
+        self.latest = timetools.interpret_date(REF_EARLIEST_TIME, fmt='Time')
         self.number_of_records = len(self.entries)
         self.invalid_records = {}
         self.valid_records = []
@@ -151,7 +152,7 @@ class ODSInstance:
         self.time_format = 'time'
         for entry in self.entries:
             for key in self.standard.time_fields:
-                entry[key] = tools.make_time(entry[key])
+                entry[key] = timetools.interpret_date(entry[key], fmt='Time')
 
     def convert_time_to_str(self):
         """
@@ -163,7 +164,7 @@ class ODSInstance:
         self.time_format = 'string'
         for entry in self.entries:
             for key in self.standard.time_fields:
-                entry[key] = tools.time2str(entry[key])
+                entry[key] = timetools.interpret_date(entry[key], fmt='isoformat')
 
     def view(self, order=['src_id', 'src_start_utc', 'src_end_utc'], number_per_block=5):
         """
@@ -218,7 +219,7 @@ class ODSInstance:
         stroff = max([len(x) for x in rows]) + 1
 
         start_label, stop_label = f"{self.earliest.datetime.isoformat(timespec='seconds')}", f"{self.latest.datetime.isoformat(timespec='seconds')}"
-        current = int((tools.make_time('now') - self.earliest).to('second').value / dt)
+        current = int((timetools.interpret_date('now', fmt='Time') - self.earliest).to('second').value / dt)
         show_current = True if (current > -1 and current < numpoints) else False
         len_label = len(start_label)
         stroff = max(stroff, len_label // 2 + 1)

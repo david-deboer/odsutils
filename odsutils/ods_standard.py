@@ -1,4 +1,4 @@
-from . import ods_tools as tools
+from . import ods_timetools as timetools
 
 
 LATEST = 'A'
@@ -143,7 +143,7 @@ class Standard:
                     is_valid = False
         for key in self.time_fields:
             try:
-                _ = tools.make_time(rec[key])
+                _ = timetools.interpret_date(rec[key], fmt='Time')
             except ValueError:
                 msg.append(f"{rec[key]} is not a valid astropy.time.Time input format")
                 is_valid = False
