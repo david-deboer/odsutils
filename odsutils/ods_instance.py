@@ -87,7 +87,7 @@ class ODSInstance:
             self.input = 'dictionary'
         elif isinstance(ods_input, str):
             if ods_input.startswith('http'):
-                input_ods_data = tools.get_json_url(ods_input)
+                input_ods_data = tools.get_url(ods_input, fmt='json')
             else:
                 input_ods_data = tools.read_json_file(ods_input)
             self.input = ods_input 
@@ -157,18 +157,21 @@ class ODSInstance:
     
         Return
         ------
-        value or list of dict
+        value or dict, or list of dict
         """
         fmt = 'Time' if fmt == 'InternalRepresentation' else fmt
         fmt = 'isoformat' if fmt == 'ExternalFormat' else fmt
         if key == 'all':
-            entries = []
-            for entry in val:
+            if isinstance(val, list):
+                entries = []
+                for entry in val:
+                    entries.append(self.dump('all', entry, fmt=fmt))
+                return entries
+            elif isinstance(val, dict):
                 this_entry = {}
-                for tkey, tval in entry.items():
+                for tkey, tval in val.items():
                     this_entry[tkey] = self.dump(tkey, tval, fmt=fmt)
-                entries.append(this_entry)
-            return entries
+                return this_entry
         elif key in self.standard.time_fields:
             return timetools.interpret_date(val, fmt=fmt)
         elif fmt == 'Time':

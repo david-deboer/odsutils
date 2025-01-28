@@ -233,6 +233,7 @@ class ODS:
 
         """
         instance_name = self.get_instance_name(instance_name)
+        updates = self.ods[instance_name].dump('all', updates, fmt='InternalRepresentation')
         if isinstance(entry, int):
             self.ods[instance_name].entries[entry].update(updates)
         else:
@@ -332,9 +333,10 @@ class ODS:
                 return
             times = tools.generate_observation_times(start, obs_len_sec)
         for i, tt in enumerate(times):
-            this_update = {self.ods[instance_name].standard.start: tt[0].datetime.isoformat(timespec='seconds'),
-                           self.ods[instance_name].standard.stop: tt[1].datetime.isoformat(timespec='seconds')}
+            this_update = {self.ods[instance_name].standard.start: tt[0],
+                           self.ods[instance_name].standard.stop: tt[1]}
             self.ods[instance_name].entries[i].update(this_update)
+        self.ods[instance_name].gen_info()
 
     def cull_by_time(self, cull_time='now', cull_by='stale', instance_name=None):
         """

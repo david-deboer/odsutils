@@ -118,7 +118,7 @@ def write_data_file(file_name, ods, cols, sep=','):
             print(sep.join(row), file=fp)
 
 
-def get_json_url(url):
+def get_url(url, fmt='json'):
     """
     Read a json url.
 
@@ -139,8 +139,13 @@ def get_json_url(url):
     except Exception as e:
         print(f"Error reading {url}:  {e}")
         return
-    return xxx.json()
 
+    if fmt == 'json':
+        return xxx.json()
+    elif fmt == 'txt':
+        return xxx.text.splitlines()
+    else:
+        raise ValueError(f"Invalid url return format: {fmt}")
 
 def listify(x, d={}, sep=',', NoneReturn=[]):
     """
