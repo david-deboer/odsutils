@@ -3,7 +3,6 @@ from .ods_standard import Standard
 from . import ods_tools as tools
 from . import ods_timetools as timetools
 from numpy import floor
-from json import dumps
 
 
 DEFAULT_WORKING_INSTANCE = 'primary'
@@ -174,10 +173,8 @@ class ODSInstance:
                 return this_entry
         elif key in self.standard.time_fields:
             return timetools.interpret_date(val, fmt=fmt)
-        elif fmt == 'Time':
-            return val
         else:
-            return dumps(val)
+            return val
 
     def view(self, order=['src_id', 'src_start_utc', 'src_end_utc'], number_per_block=5):
         """
