@@ -83,7 +83,7 @@ class ODSInstance:
 
         """
         if isinstance(ods_input, dict):
-            input_ods_data = copy(ods_input)
+            input_ods_data = ods_input
             self.input = 'dictionary'
         elif isinstance(ods_input, str):
             if ods_input.startswith('http'):
@@ -143,6 +143,22 @@ class ODSInstance:
                 self.invalid_records[ctr] = msg
 
     def dump(self, key, val, fmt='isoformat'):
+        """
+        Prep entry/entries for dumping to file or internal.
+
+        Parameters
+        ----------
+        key : str
+            key of the entry or 'all'
+        val : *
+            value of the entry or a list of entries if key == 'all'
+        fmt : str
+            Format infomation, primarily for time
+    
+        Return
+        ------
+        value or list of dict
+        """
         fmt = 'Time' if fmt == 'InternalRepresentation' else fmt
         fmt = 'isoformat' if fmt == 'ExternalFormat' else fmt
         if key == 'all':
