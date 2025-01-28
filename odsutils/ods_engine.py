@@ -356,7 +356,6 @@ class ODS:
         instance_name = self.get_instance_name(instance_name)
         cull_time = timetools.interpret_date(cull_time, fmt='Time')
         logger.info(f"Culling ODS for {cull_time} by {cull_by}")
-        self.ods[instance_name].make_time()
         culled_ods = []
         for rec in self.ods[instance_name].entries:
             stop_time = rec[self.ods[instance_name].standard.stop]
@@ -406,7 +405,6 @@ class ODS:
 
         """
         instance_name = self.get_instance_name(instance_name)
-        self.ods[instance_name].convert_time_to_str()
         logger.info("Culling ODS for duplicates")
         starting_number = len(self.ods[instance_name].entries)
         self.ods[instance_name].entries = tools.sort_entries(self.ods[instance_name].entries, self.ods[instance_name].standard.sort_order_time, collapse=True, reverse=False)

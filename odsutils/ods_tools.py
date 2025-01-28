@@ -1,5 +1,5 @@
 import json
-from astropy.time import Time
+from . import ods_timetools as timetools
 
 
 def read_json_file(file_name):
@@ -219,7 +219,7 @@ def generate_observation_times(start, obs_len_sec, gap=1.0, N=None):
 
     Parameters
     ----------
-    start : something for make_time
+    start : something for interpret_date
         starting time
     obs_len_sec : float/int or list
         length of observation(s), if list, must equal. If not, N must be set
@@ -234,7 +234,7 @@ def generate_observation_times(start, obs_len_sec, gap=1.0, N=None):
     from copy import copy
     from astropy.time import TimeDelta
     times = []
-    start = make_time(start)
+    start = timetools.interpret_date(start, fmt='Time')
     if not isinstance(obs_len_sec, list):
         obs_len_sec = [obs_len_sec] * N
     current = start

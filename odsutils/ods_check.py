@@ -31,7 +31,7 @@ class ODSCheck:
     
     def is_same(self, rec1, rec2, fields2check='all', standard=None):
         """
-        Checks to see if two records are equal.
+        Checks to see if two records are the same.
 
         Parameters
         ----------
@@ -190,7 +190,6 @@ class ODSCheck:
         """
         from copy import copy
 
-        ods.make_time()
         sorted_entries = tools.sort_entries(ods.entries, [ods.standard.stop, ods.standard.start])
         dt = TimeDelta(time_step_min * 60.0, format='sec')
         starting = ods.earliest if starting == 'start' else timetools.interpret_date(starting, fmt='Time')

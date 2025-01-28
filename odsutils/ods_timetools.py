@@ -81,7 +81,7 @@ def truncate_to_day(td):
     td = interpret_date(td, fmt='Time')
     return datetime(year=td.datetime.year, month=td.datetime.month, day=td.datetime.day)
 
-def interpret_date(iddate, fmt='%Y-%m-%d'):
+def interpret_date(iddate, fmt='Time', NoneReturn=None):
     """
     Interpret 'iddate' and return time or formated string.
 
@@ -90,15 +90,19 @@ def interpret_date(iddate, fmt='%Y-%m-%d'):
     iddate : datetime, Time, str, list
         Day to be interpreted
     fmt : str
-        Either a datetime format string (starting with %) or 'Time'
+        Either a datetime format string (starting with %) or 'Time', 'isoformat', 'datetime'
+    NoneReturn : None or intepretable
+        What to return if input is None
 
     Return
     ------
     Time or str depending on fmt
 
     """
+    if iddate is None:
+        return None if NoneReturn is None else interpret_date(NoneReturn, fmt=fmt)
     if isinstance(iddate, list):
-        iddate = [interpret_date(x, fmt=fmt) for x in iddate]
+        iddate = [interpret_date(x, fmt=fmt, NoneReturn=NoneReturn) for x in iddate]
         if fmt == 'Time':
             iddate = Time(iddate)
         return iddate

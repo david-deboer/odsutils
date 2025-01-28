@@ -3,13 +3,14 @@ from .ods_standard import Standard
 from . import ods_tools as tools
 from . import ods_timetools as timetools
 from numpy import floor
+from json import dumps
 
 
 DEFAULT_WORKING_INSTANCE = 'primary'
 PLOT_AZEL = 'Az vs El'
 PLOT_TIMEEL = 'Time vs El'
-REF_LATEST_TIME = '2026-12-31T23:59'
-REF_EARLIEST_TIME = '2020-01-01T00:00'
+REF_LATEST_TIME = timetools.interpret_date('2026-12-31T23:59', fmt='Time')
+REF_EARLIEST_TIME = timetools.interpret_date('2020-01-01T00:00', fmt='Time')
 
 
 class ODSInstance:
@@ -33,7 +34,6 @@ class ODSInstance:
         self.invalid_records = {}
         self.number_of_records = 0
         self.input_sets = {'invalid': set()}
-        self.time_format = 'string'
 
     def new_record(self, entry={}, defaults={}):
         """
@@ -49,11 +49,12 @@ class ODSInstance:
         """
         rec = {}
         for key in self.standard.ods_fields:
-            rec[key] = None
+            val = None
             if key in entry:
-                rec[key] = copy(entry[key])
+                val = entry[key]
             elif key in defaults:
-                rec[key] = copy(defaults[key])
+                val = defaults[key]
+            rec[key] = self.dump(key, val, fmt='InternalRepresentation')
         self.entries.append(rec)
 
     def read(self, ods_input):
@@ -92,11 +93,11 @@ class ODSInstance:
             self.input = ods_input 
         else:
             return False
-        if input_ods_data is None:
-            return False
-        self.entries += input_ods_data[self.standard.data_key]  # This is the internal list of ods records
+
+        if self.standard.data_key in input_ods_data:
+            input_ods_data = input_ods_data[self.standard.data_key]
+        self.entries += self.dump('all', input_ods_data, fmt='InternalRepresentation')
         self.gen_info()
-        self.time_format = 'string'
         return True
 
     def gen_info(self):
@@ -119,9 +120,8 @@ class ODSInstance:
             Time of latest record
 
         """
-        self.make_time()
-        self.earliest = timetools.interpret_date(REF_LATEST_TIME, fmt='Time')
-        self.latest = timetools.interpret_date(REF_EARLIEST_TIME, fmt='Time')
+        self.earliest = REF_LATEST_TIME
+        self.latest = REF_EARLIEST_TIME
         self.number_of_records = len(self.entries)
         self.invalid_records = {}
         self.valid_records = []
@@ -142,29 +142,23 @@ class ODSInstance:
             else:
                 self.invalid_records[ctr] = msg
 
-    def make_time(self):
-        """
-        Make Time attributes for time fields -- it modifies the instance.
-
-        """
-        if self.time_format == 'time':  # Already is
-            return
-        self.time_format = 'time'
-        for entry in self.entries:
-            for key in self.standard.time_fields:
-                entry[key] = timetools.interpret_date(entry[key], fmt='Time')
-
-    def convert_time_to_str(self):
-        """
-        This is the inverse of make_time -- it modifies the instance.
-
-        """
-        if self.time_format == 'string':  # Already is
-            return
-        self.time_format = 'string'
-        for entry in self.entries:
-            for key in self.standard.time_fields:
-                entry[key] = timetools.interpret_date(entry[key], fmt='isoformat')
+    def dump(self, key, val, fmt='isoformat'):
+        fmt = 'Time' if fmt == 'InternalRepresentation' else fmt
+        fmt = 'isoformat' if fmt == 'ExternalFormat' else fmt
+        if key == 'all':
+            entries = []
+            for entry in val:
+                this_entry = {}
+                for tkey, tval in entry.items():
+                    this_entry[tkey] = self.dump(tkey, tval, fmt=fmt)
+                entries.append(this_entry)
+            return entries
+        elif key in self.standard.time_fields:
+            return timetools.interpret_date(val, fmt=fmt)
+        elif fmt == 'Time':
+            return val
+        else:
+            return dumps(val)
 
     def view(self, order=['src_id', 'src_start_utc', 'src_end_utc'], number_per_block=5):
         """
@@ -182,7 +176,6 @@ class ODSInstance:
             return
         from tabulate import tabulate
         from numpy import ceil
-        self.convert_time_to_str()
         blocks = [range(i * number_per_block, (i+1) * number_per_block) for i in range(int(ceil(self.number_of_records / number_per_block)))]
         blocks[-1] = range(blocks[-1].start, self.number_of_records)
         order = order + [x for x in self.standard.ods_fields if x not in order]
@@ -190,7 +183,7 @@ class ODSInstance:
             header = ['Field    \    #'] + [str(i) for i in blk]
             data = []
             for key in order:
-                row = [key] + [self.entries[i][key] for i in blk]
+                row = [key] + [self.dump(key, self.entries[i][key], fmt='isoformat') for i in blk]
                 data.append(row)
             tble = tabulate(data, headers=header)
             print(tble)
@@ -208,7 +201,6 @@ class ODSInstance:
             Number of interior ticks -- not used yet.
 
         """
-        self.make_time()
         sorted_ods = tools.sort_entries(self.entries, [self.standard.start, self.standard.stop], collapse=False, reverse=False)
         #dticks = ((self.latest - self.earliest) / (numticks + 2)).to('second').value  # Not used yet.
 
@@ -256,8 +248,8 @@ class ODSInstance:
             Name of ods json file to write
 
         """
-        self.convert_time_to_str()
-        tools.write_json_file(file_name, {self.standard.data_key: self.entries})
+        entries = self.dump('all', self.entries, fmt='ExternalFormat')
+        tools.write_json_file(file_name, {self.standard.data_key: entries})
 
     def export2file(self, filename, cols='all', sep=','):
         """
@@ -273,6 +265,6 @@ class ODSInstance:
             Separator to use
 
         """
-        self.convert_time_to_str()
+        entries = self.dump('all', self.entries, fmt='ExternalFormat')
         cols = list(self.standard.ods_fields.keys()) if cols == 'all' else tools.listify(cols)
-        tools.write_data_file(filename, self.entries, cols, sep=sep)
+        tools.write_data_file(filename, entries, cols, sep=sep)
