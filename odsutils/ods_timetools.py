@@ -136,6 +136,8 @@ def interpret_date(iddate, fmt='Time', NoneReturn=None):
         iddate = iddate.datetime
     elif iddate is not None and fmt == 'isoformat':
         iddate = iddate.datetime.isoformat(timespec='seconds')
+    elif iddate is not None and fmt == 'jd':
+        iddate = iddate.jd
     return iddate
 
 #######################################OBSNERD
