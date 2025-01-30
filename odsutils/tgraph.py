@@ -17,8 +17,9 @@ class Graph:
         self.title = title
 
     def setup(self, start, dt_min=10.0, duration_days=1.0):
-        daystart = timetools.interpret_date(timetools.interpret_date(start, '%Y-%m-%d'), fmt='Time')
-        self.start = Time(daystart.datetime.replace(hour=start.datetime.hour))
+        start = timetools.interpret_date(start, fmt='datetime')
+        daystart = timetools.interpret_date(timetools.interpret_date(start, '%Y-%m-%d'), fmt='datetime')
+        self.start = Time(daystart.replace(hour=start.hour))
         self.end = self.start + TimeDelta(duration_days * DAYSEC, format='sec')
         self.T = duration_days
         self.N = int(self.T * DAYSEC / (dt_min * 60.0)) + 1
