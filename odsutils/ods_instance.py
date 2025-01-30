@@ -205,7 +205,7 @@ class ODSInstance:
             print(tble)
             print('=' * len(tble.splitlines()[1]))
     
-    def graph(self, numpoints=160, numticks=10):
+    def graph(self, location='ATA', numpoints=160, numticks=10):
         """
         Text-based graph of ods times/targets sorted by start/stop times.
 
@@ -217,42 +217,17 @@ class ODSInstance:
             Number of interior ticks -- not used yet.
 
         """
+        from . import tgraph, locations
         sorted_ods = tools.sort_entries(self.entries, [self.standard.start, self.standard.stop], collapse=False, reverse=False)
-        #dticks = ((self.latest - self.earliest) / (numticks + 2)).to('second').value  # Not used yet.
-
-        dt = ((self.latest - self.earliest) / (numpoints-1)).to('second').value
-        rows = []
-        for rec in sorted_ods:
-            rows.append(rec[self.standard.source])
-        stroff = max([len(x) for x in rows]) + 1
-
-        start_label, stop_label = f"{self.earliest.datetime.isoformat(timespec='seconds')}", f"{self.latest.datetime.isoformat(timespec='seconds')}"
-        current = int((timetools.interpret_date('now', fmt='Time') - self.earliest).to('second').value / dt)
-        show_current = True if (current > -1 and current < numpoints) else False
-        len_label = len(start_label)
-        stroff = max(stroff, len_label // 2 + 1)
-        spaces = ' ' * (stroff - 1 - len_label // 2), ' ' * (numpoints-len_label-1)
-        labelrow = f"{spaces[0]}{start_label}{spaces[1]}{stop_label}"
-        tickrow = [' '] * (stroff) + ['|'] + [' '] * (numpoints-2) + ['|']
-        if show_current:
-            tickrow[current + stroff] = '0'
-        tickrow = ''.join(tickrow)
-        dashrow = '-' * (stroff + numpoints + len_label//2)
-        graphhdr = f"-- GRAPH: {self.instance_name} --\n"
-        print(f"{dashrow}\n{graphhdr}\n{labelrow}\n{tickrow}")
-        for rec in sorted_ods:
-            row = ['.'] * numpoints
-            starting = int(floor((rec[self.standard.start]  -  self.earliest).to('second').value / dt))
-            ending = int(floor((rec[self.standard.stop] - self.earliest).to('second').value / dt)) + 1
-            for star in range(starting, ending):
-                try:
-                    row[star] = '*'
-                except IndexError:
-                    pass
-            if show_current:
-                row[current] = 'X' if row[current] == '*' else '|'
-            print(f"{rec[self.standard.source]:{stroff}s}{''.join(row)}")
-        print(f"{tickrow}\n{labelrow}\n{dashrow}")
+        loc = locations.Location(location)
+        rowhdr = [[i, x['src_id']] for i, x in enumerate(sorted_ods)]
+        graph = tgraph.Graph()
+        graph.setup(self.earliest, duration_days=(self.latest - self.earliest).jd)
+        graph.ticks_labels(tz=loc.tz, location=loc.loc, rowhdr=rowhdr, int_hr=2)
+        for entry in sorted_ods:
+            graph.row(entry['src_start_utc'], entry['src_end_utc'])
+        graph.make_table()
+        print(graph.tabulated)
 
     def write(self, file_name):
         """
