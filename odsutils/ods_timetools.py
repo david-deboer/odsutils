@@ -129,6 +129,32 @@ def interpret_date(iddate, fmt='Time', NoneReturn=None):
         iddate = iddate.jd
     return iddate
 
+def wait_until(target_time):
+    """
+    Pauses execution until the specified target time.
+
+    Parameters:
+    - target_time (datetime.datetime): The datetime to wait until.
+
+    """
+    from time import sleep
+    now = datetime.datetime.now()
+    target_time = interpret_date(target_time, fmt='datetime')
+
+    if target_time <= now:
+        print("CAREFUL TIME WAS BEFORE NOW")
+        return
+        #raise ValueError("Target time is in the past. Please provide a future time.")
+
+    # Calculate the remaining time in seconds
+    remaining_time = (target_time - now).total_seconds()
+    print(f"Waiting for {remaining_time} seconds until {target_time}...")
+
+    # Sleep for the remaining time
+    sleep(remaining_time)
+    print("Reached target time:", target_time)
+
+
 #######################################OBSNERD
 TIME_FORMATS = ['%Y-%m-%dT%H:%M', '%y-%m-%dT%H:%M',
                 '%Y-%m-%d %H:%M', '%y-%m-%d %H:%M',
