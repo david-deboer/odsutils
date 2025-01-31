@@ -34,6 +34,9 @@ class ODSInstance:
         self.number_of_records = 0
         self.input_sets = {'invalid': set()}
 
+    def __str__(self):
+        return self.view()
+
     def new_record(self, entry={}, defaults={}):
         """
         Add a new record, with each value set to None, then apply defaults, then new fields and append to entries.
@@ -215,6 +218,7 @@ class ODSInstance:
         blocks = [range(i * number_per_block, (i+1) * number_per_block) for i in range(int(ceil(self.number_of_records / number_per_block)))]
         blocks[-1] = range(blocks[-1].start, self.number_of_records)
         order = order + [x for x in self.standard.ods_fields if x not in order]
+        full_table = ''
         for blk in blocks:
             header = ['Field    \    #'] + [str(i) for i in blk]
             data = []
@@ -222,8 +226,8 @@ class ODSInstance:
                 row = [key] + [self.dump(key, self.entries[i][key], fmt='isoformat') for i in blk]
                 data.append(row)
             tble = tabulate(data, headers=header)
-            print(tble)
-            print('=' * len(tble.splitlines()[1]))
+            full_table += tble + '=' * len(tble.splitlines()[1]) + '\n'
+        return full_table
     
     def graph(self, location='ATA', numpoints=160, numticks=10):
         """

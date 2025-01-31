@@ -524,7 +524,7 @@ class ODS:
         if not self.ods[instance_name].number_of_records:
             logger.info("No records to print.")
             return
-        self.ods[instance_name].view(order=order, number_per_block=number_per_block)
+        print(self.ods[instance_name].view(order=order, number_per_block=number_per_block))
     
     def graph_ods(self, numpoints=160, instance_name=None):
         """
