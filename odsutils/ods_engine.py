@@ -409,7 +409,7 @@ class ODS:
         instance_name = self.get_instance_name(instance_name)
         logger.info("Culling ODS for duplicates")
         starting_number = len(self.ods[instance_name].entries)
-        self.ods[instance_name].entries = tools.sort_entries(self.ods[instance_name].entries, self.ods[instance_name].standard.sort_order_time, collapse=True, reverse=False)
+        self.ods[instance_name].sort()
         if len(self.ods[instance_name].entries) == starting_number:
             logger.info("retaining all.")
             return

@@ -99,6 +99,26 @@ class ODSInstance:
         self.gen_info()
         return True
 
+    def sort(self, keyorder='sort_order_time', collapse=True, reverse=False):
+        """
+        Sort the entries of this instance in keyorder.
+
+        Parameters
+        ----------
+        keyorder : str, list
+            key order to sort on - sort_order_time is defined in the standard
+        collapse : bool
+            If True, will remove duplicates
+        reverse : bool
+            If True, will sort in reverse order
+
+        """
+        if keyorder == 'sort_order_time':
+            keyorder = self.standard.sort_order_time
+        elif isinstance(keyorder, list):
+            keyorder = tools.listify(keyorder)
+        self.entries = tools.sort_entries(self.entries, keyorder, collapse=collapse, reverse=reverse)
+
     def gen_info(self):
         """
         Get some extra info on the instance.
