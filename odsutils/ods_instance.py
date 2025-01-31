@@ -226,7 +226,7 @@ class ODSInstance:
                 row = [key] + [self.dump(key, self.entries[i][key], fmt='isoformat') for i in blk]
                 data.append(row)
             tble = tabulate(data, headers=header)
-            full_table += tble + '=' * len(tble.splitlines()[1]) + '\n'
+            full_table += tble + '\n' + '=' * len(tble.splitlines()[1]) + '\n'
         return full_table
     
     def graph(self, location='ATA', numpoints=160, numticks=10):
