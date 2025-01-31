@@ -153,6 +153,7 @@ def wait_until(target_time):
     # Sleep for the remaining time
     sleep(remaining_time)
     print("Reached target time:", target_time)
+    return remaining_time
 
 
 #######################################OBSNERD
