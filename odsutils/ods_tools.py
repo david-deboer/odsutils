@@ -147,7 +147,7 @@ def get_url(url, fmt='json'):
     else:
         raise ValueError(f"Invalid url return format: {fmt}")
 
-def listify(x, d={}, sep=',', NoneReturn=[]):
+def listify(x, d={}, sep=',', NoneReturn=[], dtype=None):
     """
     Convert input to list.
 
@@ -161,6 +161,8 @@ def listify(x, d={}, sep=',', NoneReturn=[]):
         Separator to use if str
     NoneReturn : *
         Return is input is None
+    dtype : type or None
+        Type of list elements to return
     
     Return
     ------
@@ -170,14 +172,18 @@ def listify(x, d={}, sep=',', NoneReturn=[]):
     if x is None:
         return NoneReturn
     if isinstance(x, list):
-        return x
-    if isinstance(x, str) and x in d:
-        return d[x]
-    if isinstance(x, str):
+        this = x
+    elif isinstance(x, str) and x in d:
+        this = d[x]
+    elif isinstance(x, str):
         if sep == 'auto':
             sep = ','
-        return x.split(sep)
-    return [x]
+        this = x.split(sep)
+    else:
+        this = [x]
+    if dtype is None:
+        return this
+    return [dtype(z) for z in this]
 
 
 def sort_entries(ods, terms, collapse=False, reverse=False):
