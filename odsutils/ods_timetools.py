@@ -111,7 +111,7 @@ def interpret_date(iddate, fmt='Time', NoneReturn=None):
         iddate = Time.now() + TimeDelta(24.0*3600.0, format='sec')
     elif len(str(iddate)) == 4:  # assume just a year
         iddate = Time(f"{iddate}-01-01")
-    elif len(str(iddate)) == 7:  # assume YYYY-MM
+    elif isinstance(iddate, str) and len(iddate) == 7:  # assume YYYY-MM
         iddate = Time(f"{iddate}-01")
     else:
         try:
