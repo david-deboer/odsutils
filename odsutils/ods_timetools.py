@@ -144,23 +144,18 @@ def wait(target):
         remaining_time = target
     elif isinstance(target, timedelta):
         remaining_time = target.total_seconds()
-    elif isinstance
-
-    now = datetime.datetime.now()
-    target_time = interpret_date(target_time, fmt='datetime')
-
-    if target_time <= now:
-        print("CAREFUL TIME WAS BEFORE NOW")
-        return
-        #raise ValueError("Target time is in the past. Please provide a future time.")
-
-    # Calculate the remaining time in seconds
-    remaining_time = (target_time - now).total_seconds()
-    print(f"Waiting for {remaining_time} seconds until {target_time}...")
+    elif isinstance(target, TimeDelta):
+        remaining_time = target.to('second').value
+    else:
+        now = interpret_date('now', fmt='Time')
+        target = interpret_date(target, fmt='Time')
+        if target <= now:
+            print("Target time is in the past -- returning None")
+            return
+        remaining_time = (target - now).to('second').value
 
     # Sleep for the remaining time
     sleep(remaining_time)
-    print("Reached target time:", target_time)
     return remaining_time
 
 
