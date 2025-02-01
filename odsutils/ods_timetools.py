@@ -1,6 +1,6 @@
 from astropy.time import Time, TimeDelta
 from zoneinfo import available_timezones, ZoneInfo, ZoneInfoNotFoundError
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 TUNITS = {'day': 24.0 * 3600.0, 'd': 24.0 * 3600.0,
@@ -129,15 +129,23 @@ def interpret_date(iddate, fmt='Time', NoneReturn=None):
         iddate = iddate.jd
     return iddate
 
-def wait_until(target_time):
+def wait(target):
     """
-    Pauses execution until the specified target time.
+    Pauses execution until the specified target time or length
 
-    Parameters:
-    - target_time (datetime.datetime): The datetime to wait until.
+    Parameters
+    ----------
+    target : interpret_date
+        Target to wait for or until
 
     """
     from time import sleep
+    if isinstance(target, (float, int)):
+        remaining_time = target
+    elif isinstance(target, timedelta):
+        remaining_time = target.total_seconds()
+    elif isinstance
+
     now = datetime.datetime.now()
     target_time = interpret_date(target_time, fmt='datetime')
 
