@@ -17,7 +17,8 @@ class ODS:
     Adding the <working_instance> allows for flexibility, however generally one will only make/use one key denoted 'primary'.
 
     """
-    def __init__(self, version='latest', working_instance=ods_instance.DEFAULT_WORKING_INSTANCE, output='INFO', filelog=False, quiet=None):
+    def __init__(self, version='latest', working_instance=ods_instance.DEFAULT_WORKING_INSTANCE,
+                 conlog='INFO', filelog=False, **kwargs):
         """
         Parameters
         ----------
@@ -25,17 +26,14 @@ class ODS:
             Version of default ODS standard -- note that instances can be different
         working_instance : str
             Key to use for the ods instance in use.
-        output : str, False
-            One of the logging levels 'DEBUG', 'INFO', 'WARNING', 'ERROR'
+        conlog : str, False
+            One of the logging levels for console: 'DEBUG', 'INFO', 'WARNING', 'ERROR'
         filelog : str, False
-            One of the logging levels 'DEBUG', 'INFO', 'WARNING', 'ERROR'
-        quiet : bool, None DEPRECATED
-            Kept for backward compatibility.  Use output
+            One of the logging levels for file: 'DEBUG', 'INFO', 'WARNING', 'ERROR'
+        **kwargs : kept to catch old keywords
 
         """
-        if quiet is not None:  # For backward compatibility
-            output = 'ERROR' if quiet else 'INFO'
-        self.logset = logger_setup.Logger(logger, conlog=output, filelog=filelog, log_filename=LOG_FILENAME, path=None)
+        self.log_settings = logger_setup.Logger(logger, conlog=conlog, filelog=filelog, log_filename=LOG_FILENAME, path=None)
         logger.info(f"{__name__} ver. {__version__}")
 
         # ###
@@ -43,7 +41,7 @@ class ODS:
         self.ods = {}
         self.new_ods_instance(working_instance, version=version, set_as_working=True)
         self.defaults = {}
-        self.check = ODSCheck(alert=self.logset.conlog, standard=self.ods[working_instance].standard)
+        self.check = ODSCheck(alert=self.log_settings.conlog, standard=self.ods[working_instance].standard)
 
     def pipe(self, adds, current, output=None):
         """
