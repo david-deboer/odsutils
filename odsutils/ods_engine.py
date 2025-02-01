@@ -58,18 +58,32 @@ class ODS:
             ODS file to write, if None, use intake
 
         """
-        output = current if output is None else output
-        if output.startswith('http'):
-            logger.error("Can't write to a URL -- no action")
-            return
-        if adds not in self.ods.keys():
-            self.new_ods_instance('adds')
-            self.read_ods(adds, 'adds')
-            adds = 'adds'
-        self.read_ods(current)
-        self.merge(adds)
-        self.cull_by_time('now', 'stale')
-        self.write_ods(output)
+        if current in self.ods.keys():
+            instance_to_update = current
+        else:
+            instance_to_update = 'instant_to_update'
+            self.new_ods_instance(instance_name=instance_to_update)
+            self.read_ods(current, instance_name=instance_to_update)
+
+        if output is None:
+            if current.startswith('http'):
+                logger.error("Can't write to a URL -- no action.")
+                return
+            if current == instance_to_update:
+                logger.error("Can't write to an instance -- no action.")
+                return
+            output = current
+
+        if adds in self.ods.keys():
+            instance_to_add = adds
+        else:
+            instance_to_add = 'instance_to_add'
+            self.new_ods_instance(instance_name=instance_to_add)
+            self.read_ods(adds, instance_name=instance_to_add)
+
+        self.merge(instance_to_add, instance_to_update)
+        self.cull_by_time('now', 'stale', instance_name=instance_to_update)
+        self.write_ods(output, instance_name=instance_to_update)
 
     def new_ods_instance(self, instance_name, version='latest', set_as_working=False):
         """
