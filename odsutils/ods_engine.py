@@ -43,7 +43,7 @@ class ODS:
         self.defaults = {}
         self.check = ODSCheck(alert=self.log_settings.conlog, standard=self.ods[working_instance].standard)
 
-    def pipe(self, adds, current, output=None):
+    def pipe(self, adds, intake, output=None):
         """
         This is the "standard pipeline" of reading an existing ods file, removing old ones, adding new ones
         and rewriting.
@@ -52,27 +52,27 @@ class ODS:
         ----------
         add : list or str
             List of ods records to add or filename for records (see intake), or ods instance name
-        current : str
+        intake : str
             ODS file to read or URL to use
         output : str
             ODS file to write, if None, use intake
 
         """
-        if current in self.ods.keys():
-            instance_to_update = current
+        if intake in self.ods.keys():
+            instance_to_update = intake
         else:
             instance_to_update = 'instant_to_update'
             self.new_ods_instance(instance_name=instance_to_update)
-            self.read_ods(current, instance_name=instance_to_update)
+            self.read_ods(intake, instance_name=instance_to_update)
 
         if output is None:
-            if current.startswith('http'):
+            if intake.startswith('http'):
                 logger.error("Can't write to a URL -- no action.")
                 return
-            if current == instance_to_update:
+            if intake == instance_to_update:
                 logger.error("Can't write to an instance -- no action.")
                 return
-            output = current
+            output = intake
 
         if adds in self.ods.keys():
             instance_to_add = adds
