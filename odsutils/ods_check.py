@@ -14,15 +14,20 @@ class ODSCheck:
     Utilities to check ODS instances/records.
 
     """
-    def __init__(self, alert='INFO', standard=None, filelog=False):
+    def __init__(self, standard=None, conlog='INFO', filelog=False, **kwargs):
         """
         Parameter
         ---------
-        alert : str
-            Default alert
+        standard : str
+            Standard to use
+        conlog : str or bool
+            Log level for conole logging
+        filelog : str or bool
+            Log level for file logging
+        **kwargs : kept to catch old keywords
 
         """
-        self.logset = logger_setup.Logger(logger, conlog=alert, filelog=filelog, log_filename=LOG_FILENAME, path=None)
+        self.log_settings = logger_setup.Logger(logger, conlog=conlog, filelog=filelog, log_filename=LOG_FILENAME, path=None)
         logger.info(f"{__name__} ver. {__version__}")
         self.standard = standard
 

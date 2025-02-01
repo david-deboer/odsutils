@@ -2,7 +2,6 @@ from copy import copy
 from .ods_standard import Standard
 from . import ods_tools as tools
 from . import ods_timetools as timetools
-from numpy import floor
 
 
 DEFAULT_WORKING_INSTANCE = 'primary'
@@ -87,6 +86,9 @@ class ODSInstance:
         if isinstance(ods_input, dict):
             input_ods_data = ods_input
             self.input = 'dictionary'
+        elif isinstance(ods_input, list):
+            input_ods_data = {self.standard.data_key: input_ods_data}
+            self.input = 'list'
         elif isinstance(ods_input, str):
             if ods_input.startswith('http'):
                 input_ods_data = tools.get_url(ods_input, fmt='json')
