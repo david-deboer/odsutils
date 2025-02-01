@@ -51,7 +51,7 @@ class ODS:
         Parameters
         ----------
         add : list or str
-            List of ods records to add or filename for records (see intake)
+            List of ods records to add or filename for records (see intake), or ods instance name
         current : str
             ODS file to read or URL to use
         output : str
@@ -62,10 +62,12 @@ class ODS:
         if output.startswith('http'):
             logger.error("Can't write to a URL -- no action")
             return
-        self.new_ods_instance('adds')
-        self.read_ods(adds, 'adds')
+        if adds not in self.ods.keys():
+            self.new_ods_instance('adds')
+            self.read_ods(adds, 'adds')
+            adds = 'adds'
         self.read_ods(current)
-        self.merge('adds')
+        self.merge(adds)
         self.cull_by_time('now', 'stale')
         self.write_ods(output)
 
