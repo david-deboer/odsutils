@@ -8,7 +8,7 @@ FILE_HANDLER_NAME = 'File'
 class Logger:
     def __init__(self, logger, conlog='INFO', filelog=False,
                  log_filename='default_log_filename', path=None,
-                 conlog_format="{levelname} - {module} - {message}",
+                 conlog_format="{asctime} - {levelname} - {module} - {message}",
                  filelog_format="{asctime} - {levelname} - {module} - {message}"):
         self.conlog = conlog.upper() if isinstance(conlog, str) else False
         self.filelog = filelog.upper() if isinstance(filelog, str) else False
