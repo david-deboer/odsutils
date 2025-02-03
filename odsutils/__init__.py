@@ -9,4 +9,6 @@ try:
 except ImportError:
     pass
 
+LOG_FORMATS = {'conlog_format': "{asctime} - {levelname} - {module} - {message}",
+               'filelog_format': "{asctime} - {levelname} - {module} - {message}"}
 LOG_FILENAME = 'odslog'

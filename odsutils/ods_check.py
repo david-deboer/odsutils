@@ -3,7 +3,7 @@ from . import ods_timetools as timetools
 from . import logger_setup, __version__
 from astropy.time import TimeDelta
 import logging
-from . import LOG_FILENAME
+from . import LOG_FILENAME, LOG_FORMATS
 
 logger = logging.getLogger(__name__)
 logger.setLevel('DEBUG')
@@ -27,7 +27,8 @@ class ODSCheck:
         **kwargs : kept to catch old keywords
 
         """
-        self.log_settings = logger_setup.Logger(logger, conlog=conlog, filelog=filelog, log_filename=LOG_FILENAME, path=None)
+        self.log_settings = logger_setup.Logger(logger, conlog=conlog, filelog=filelog, log_filename=LOG_FILENAME, path=None,
+                                                filelog_format=LOG_FORMATS['filelog_format'], conlog_format=LOG_FORMATS['conlog_format'])
         logger.info(f"{__name__} ver. {__version__}")
         self.standard = standard
 
