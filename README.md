@@ -2,9 +2,17 @@
 
 This reads, writes, updates and checks ODS lists.
 
-An ODS list is a list of ODS records.
+Operational Data Sharing (ODS) is a protocol developed by NRAO in order to facilitate coexistance with the operation of satellite constellations, developed initially with conjuction with SpaceX with their Starlink satellite network. Ref.  This {\em ODSutils} codebase provides some utilities in order to implement and use it.  This codebase is meant to be stand-alone and so has a number of utilities for it and some other associated codebases.  The code may be installed by typing
 
-An ODS file is a json file, with the the ODS list contained under the top-level key "ods_data"
+The ``standard'' itself is defined is the {\tt ods\_standard.py} module.  The ODS standard is still under development and will evolve and different versions may be implemented there.
+
+An \underline{ODS file} is a json file with one top key {\tt ods\_data} containing a list of dictionaries with the parameters.  An \underline{ODS instance} is a list of one of these parameter sets and is handled in in the {\tt ods\_instance.py} module.  ODS instance(s) can be handled in the {\tt ods\_engine.py} module.  The other file in the package are tool/utility modules.
+
+There are currently two scripts
+\begin{itemize}
+    \item {\tt odsuser.py}:  has options allowing access to various {\tt ods\_engine.py} methods.
+    \item {\tt ods\_online\_monitor.py}: grabs and saves a summary of active ODS records
+\end{itemize}
 
 Reading may come from an existing ODS file, from a datafile or be provided by a dictionary or Namespace.
 
@@ -16,7 +24,6 @@ ODS lists may be updated/culled based on a few checks.
 ODS checks are:
 1. all supplied record entries have the right "name"
 2. all entries are present and have the right type
-3. time fields are parseable by astropy.Time
 4. sources above horizon (update_by_elevation)
 5. observations don't overlap (update_by_continuity)
 
