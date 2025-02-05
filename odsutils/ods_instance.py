@@ -98,6 +98,9 @@ class ODSInstance:
         else:
             return False
 
+        if not input_ods_data:
+            return False
+
         if self.standard.data_key in input_ods_data:
             input_ods_data = input_ods_data[self.standard.data_key]
         self.entries += self.dump('all', input_ods_data, fmt='InternalRepresentation')
