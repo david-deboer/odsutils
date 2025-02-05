@@ -129,7 +129,7 @@ def interpret_date(iddate, fmt='Time', NoneReturn=None):
         iddate = iddate.jd
     return iddate
 
-def wait(target):
+def wait(target, verbose=True):
     """
     Pauses execution until the specified target time or length
 
@@ -155,6 +155,8 @@ def wait(target):
         remaining_time = (target - now).to('second').value
 
     # Sleep for the remaining time
+    if verbose:
+        print(f"Waiting for {remaining_time:.2f} seconds")
     sleep(remaining_time)
     return remaining_time
 
