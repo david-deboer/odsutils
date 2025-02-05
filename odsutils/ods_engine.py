@@ -159,9 +159,10 @@ class ODS:
         is_valid = self.ods[instance_name].read(ods_input)
         if not is_valid:
             logger.error(f"Failed to read {ods_input}")
-            return
+            return False
         logger.info(f"Read {self.ods[instance_name].number_of_records} records from {self.ods[instance_name].input}")
         self.instance_report(instance_name=instance_name)
+        return True
 
     def instance_report(self, instance_name=None):
         instance_name = self.get_instance_name(instance_name)
