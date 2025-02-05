@@ -18,8 +18,12 @@ def read_json_file(file_name):
     """
     if not file_name.endswith('.json'):
         file_name = file_name + '.json'
-    with open(file_name, 'r') as fp:
-        input_file = json.load(fp)
+    try:
+        with open(file_name, 'r') as fp:
+            input_file = json.load(fp)
+    except FileNotFoundError:
+        print(f"File not found:  {file_name}")
+        return False
     return input_file
 
 
@@ -138,7 +142,7 @@ def get_url(url, fmt='json'):
         xxx = requests.get(url)
     except Exception as e:
         print(f"Error reading {url}:  {e}")
-        return
+        return False
 
     if fmt == 'json':
         return xxx.json()
