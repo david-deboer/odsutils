@@ -587,11 +587,11 @@ class ODS:
         import matplotlib.pyplot as plt
 
         instance_name = self.get_instance_name(instance_name)
-        t, c = self.check.coverage(self.ods[instance_name], starting=starting, stopping=stopping, time_step_min=time_step_min)
-        c = array(c)
-        print(f"{100 * c.sum() / len(c): .1f}% of the period is covered.")
-        plt.plot(t, c)
-        plt.show()
+        self.cov_t, c = self.check.coverage(self.ods[instance_name], starting=starting, stopping=stopping, time_step_min=time_step_min)
+        self.cov_c = array(c)
+        print(f"{100 * self.cov_c.sum() / len(self.cov_c): .1f}% of the period is covered.")
+        plt.plot(self.cov_t, self.cov_c)
+        #plt.show()
 
     def write_ods(self, file_name, instance_name=None):
         """
