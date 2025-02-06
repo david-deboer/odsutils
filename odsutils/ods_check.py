@@ -2,6 +2,7 @@ from . import ods_tools as tools
 from . import ods_timetools as timetools
 from . import logger_setup, __version__
 from astropy.time import TimeDelta
+from datetime import datetime
 import logging
 from . import LOG_FILENAME, LOG_FORMATS
 
@@ -220,3 +221,24 @@ class ODSCheck:
                     covered.append(0)
             this_time += dt
         return ts, covered
+    
+
+class Log:
+    def __init__(self, fname=None):
+        if fname is not None:
+            self.lines = self.read_file(fname)
+
+    def read_file(self, fname, tformat='%Y-%m-%d %H:%M:%S'):
+        self.fname = fname
+        self.data = {}
+        with open(fname, 'r') as fp:
+            for line in fp:
+                if line.startswith('#'):
+                    continue
+                try:
+                    time, msg = line.strip().split(',', 1)
+                    time = datetime.strptime(time, tformat)
+                    self.data[time] = msg
+                except ValueError:
+                    print(f"Invalid line in log file: {line.strip()}")
+                    pass
