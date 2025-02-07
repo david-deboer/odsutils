@@ -206,16 +206,10 @@ class ODSCheck:
         frac_cov = total_duration.total_seconds() / (merged[-1][1] - merged[0][0]).total_seconds()
         logger.info(f"Time covered: {total_duration} of {merged[-1][1]-merged[0][0]}  ({100.0 * frac_cov:.1}%)")
         return total_duration, merged
-        
 
-class Log:
-    def __init__(self, fname=None):
-        if fname is not None:
-            self.lines = self.read_file(fname)
-
-    def read_file(self, fname, tformat='%Y-%m-%d %H:%M:%S'):
-        self.fname = fname
-        self.data = {}
+    def read_log_file(self, fname, tformat='%Y-%m-%d %H:%M:%S'):
+        self.log_fname = fname
+        self.log_data = {}
         with open(fname, 'r') as fp:
             for line in fp:
                 if line.startswith('#'):
@@ -223,7 +217,7 @@ class Log:
                 try:
                     time, msg = line.strip().split(',', 1)
                     time = datetime.strptime(time, tformat)
-                    self.data[time] = msg
+                    self.log_data[time] = msg
                 except ValueError:
                     print(f"Invalid line in log file: {line.strip()}")
                     pass
