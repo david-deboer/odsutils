@@ -582,14 +582,17 @@ class ODS:
             return
         self.ods[instance_name].graph(numpoints=numpoints)
 
-    def plot_ods_coverage(self, instance_name=None):
-        from numpy import array
+    def plot_ods_coverage(self, instance_name=None, log=False):
         import matplotlib.pyplot as plt
 
         instance_name = self.get_instance_name(instance_name)
         self.cov_Tot, self.cov_times = self.check.coverage(self.ods[instance_name])
         for xx, yy in self.cov_times:
             plt.plot([xx, yy], [0, 0], lw=5)
+        if log:
+            self.check.read_log_file(log)
+            from numpy import ones
+            
 
     def write_ods(self, file_name, instance_name=None):
         """
