@@ -591,8 +591,10 @@ class ODS:
             plt.plot([xx, yy], [0, 0], lw=5)
         if log:
             self.check.read_log_file(log)
-            from numpy import ones
-            
+            from numpy import zeros
+            ticks = zeros(len(self.check.log_data.keys()))
+            plt.plot(self.check.log_data.keys(), ticks, 'k|', markersize=15)
+
 
     def write_ods(self, file_name, instance_name=None):
         """
