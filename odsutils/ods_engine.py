@@ -582,16 +582,14 @@ class ODS:
             return
         self.ods[instance_name].graph(numpoints=numpoints)
 
-    def plot_ods_coverage(self, instance_name=None, starting='start', stopping='stop', time_step_min=1.0):
+    def plot_ods_coverage(self, instance_name=None):
         from numpy import array
         import matplotlib.pyplot as plt
 
         instance_name = self.get_instance_name(instance_name)
-        self.cov_t, c = self.check.coverage(self.ods[instance_name], starting=starting, stopping=stopping, time_step_min=time_step_min)
-        self.cov_c = array(c)
-        print(f"{100 * self.cov_c.sum() / len(self.cov_c): .1f}% of the period is covered.")
-        plt.plot(self.cov_t, self.cov_c)
-        #plt.show()
+        self.cov_Tot, self.cov_times = self.check.coverage(self.ods[instance_name])
+        for xx, yy in self.cov_times:
+            plt.plot([xx, yy], [0, 0], lw=5)
 
     def write_ods(self, file_name, instance_name=None):
         """

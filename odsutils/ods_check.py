@@ -2,7 +2,7 @@ from . import ods_tools as tools
 from . import ods_timetools as timetools
 from . import logger_setup, __version__
 from astropy.time import TimeDelta
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 from . import LOG_FILENAME, LOG_FORMATS
 
@@ -179,16 +179,14 @@ class ODSCheck:
                     logger.warning(f"{self.pre}New start is before stop so still need to fix.")
         return adjusted_entries
 
-    def coverage(self, ods, starting, stopping, time_step_min=1):
+    def coverage(self, ods):
         """
         Check coverage of records in an ODS instance.
 
-        Parameters
-        ----------
+        Parameter
+        ---------
         ods : list
             ODS list of records
-        time_step_min : float
-            Time step to check in minutes
 
         Return
         ------
@@ -198,30 +196,17 @@ class ODSCheck:
         from copy import copy
 
         sorted_entries = tools.sort_entries(ods.entries, [ods.standard.stop, ods.standard.start])
-        dt = TimeDelta(time_step_min * 60.0, format='sec')
-        starting = ods.earliest if starting == 'start' else timetools.interpret_date(starting, fmt='Time')
-        stopping = ods.latest if stopping == 'stop' else timetools.interpret_date(stopping, fmt='Time')
-        logger.info(f"Checking coverage from {starting} - {stopping}")
-        this_time = copy(starting)
-        ts = []
-        covered = []
-        starting_index = 0
-        while this_time < stopping:
-            ts.append(this_time.datetime)
-            if this_time < ods.earliest or this_time > ods.latest:
-                covered.append(0)
-            else:
-                for entry in sorted_entries[starting_index:]:
-                    if this_time > entry[ods.standard.stop]:
-                        starting_index += 1
-                    if entry[ods.standard.start] <= this_time <= entry[ods.standard.stop]:
-                        covered.append(1)
-                        break
-                else:
-                    covered.append(0)
-            this_time += dt
-        return ts, covered
-    
+        times = []
+        for entry in sorted_entries:
+            times.append([entry[ods.standard.start].datetime, entry[ods.standard.stop].datetime])
+        merged = merge_intervals(times)
+        total_duration = timedelta(0)
+        for start, end in merged:
+            total_duration += (end - start)
+        frac_cov = total_duration.total_seconds() / (merged[-1][1] - merged[0][0]).total_seconds()
+        logger.info(f"Time covered: {total_duration} of {merged[-1][1]-merged[0][0]}  ({100.0 * frac_cov:.1}%)")
+        return total_duration, merged
+        
 
 class Log:
     def __init__(self, fname=None):
@@ -242,3 +227,37 @@ class Log:
                 except ValueError:
                     print(f"Invalid line in log file: {line.strip()}")
                     pass
+
+
+def merge_intervals(intervals):
+    """
+    Merge overlapping intervals from a list of datetime tuples.
+
+    Args:
+        intervals (list of tuple): Each tuple is (start, end) where start and end are datetime objects.
+
+    Returns:
+        list of tuple: A list of merged intervals, each represented as (start, end).
+    """
+    if not intervals:
+        return []
+    
+    # Sort intervals by their start times.
+    intervals_sorted = sorted(intervals, key=lambda x: x[0])
+    merged = []
+    
+    # Initialize the current interval to the first interval in the sorted list.
+    current_start, current_end = intervals_sorted[0]
+    
+    for start, end in intervals_sorted[1:]:
+        if start <= current_end:
+            # Overlapping intervals: extend the current interval if necessary.
+            current_end = max(current_end, end)
+        else:
+            # No overlap: add the current interval and start a new one.
+            merged.append((current_start, current_end))
+            current_start, current_end = start, end
+    
+    # Append the last interval.
+    merged.append((current_start, current_end))
+    return merged
