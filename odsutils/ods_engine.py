@@ -49,21 +49,28 @@ class ODS:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def pipe(self, adds, intake, output=None):
+    def pipe(self, adds, intake, output=None, defaults=None, conlog='ERROR'):
         """
         This is the "standard pipeline" of reading an existing ods file, removing old entries, adding new ones
         and rewriting.
 
         Parameters
         ----------
-        add : list or str
-            List of ods records to add or filename for records (see intake), or ods instance name
+        add : list or str or dict
+            List of ods records to add or filename for records, or ods instance name
         intake : str
-            ODS file to read or URL to use
+            ODS file to read or URL to use, or ods instance name
         output : str
             ODS file to write, if None, use intake
+        defaults : dict or str
+            Dictionary or filename of default values to use (see get_defaults_dict)
+        conlog : str or False
+            One of the logging levels for console: 'DEBUG', 'INFO', 'WARNING', 'ERROR'
 
         """
+        self.log_settings.updateLevel('Console', conlog)
+        self.get_defaults_dict(defaults=defaults)
+
         if intake in self.ods.keys():
             instance_to_update = intake
         else:
@@ -82,6 +89,14 @@ class ODS:
 
         if adds in self.ods.keys():
             instance_to_add = adds
+        elif isinstance(adds, list):
+            instance_to_add = 'instance_to_add'
+            self.new_ods_instance(instance_name=instance_to_add)
+            self.add_from_list(adds, instance_name=instance_to_add)
+        elif isinstance(adds, dict):
+            instance_to_add = 'instance_to_add'
+            self.new_ods_instance(instance_name=instance_to_add)
+            self.add_new_record(instance_name=instance_to_add, **adds)
         else:
             instance_to_add = 'instance_to_add'
             self.new_ods_instance(instance_name=instance_to_add)

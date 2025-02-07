@@ -30,3 +30,7 @@ class Logger:
             file_handler.setFormatter(logging.Formatter(filelog_format, style='{', datefmt='%Y-%m-%dT%H:%M:%S'))
             file_handler.set_name(file_handler_name)
             logger.addHandler(file_handler)
+
+    def updateLevel(self, logger_name, level):
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(level)
