@@ -18,7 +18,7 @@ class ODS:
 
     """
     def __init__(self, version='latest', working_instance=ods_instance.DEFAULT_WORKING_INSTANCE,
-                 conlog='INFO', filelog=False, **kwargs):
+                 conlog='WARNING', filelog=False, **kwargs):
         """
         Parameters
         ----------
@@ -44,6 +44,11 @@ class ODS:
         self.defaults = {}
         self.check = ODSCheck(alert=self.log_settings.conlog, standard=self.ods[working_instance].standard)
 
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
     def pipe(self, adds, intake, output=None):
         """
         This is the "standard pipeline" of reading an existing ods file, removing old entries, adding new ones
@@ -62,7 +67,7 @@ class ODS:
         if intake in self.ods.keys():
             instance_to_update = intake
         else:
-            instance_to_update = 'instant_to_update'
+            instance_to_update = 'instance_to_update'
             self.new_ods_instance(instance_name=instance_to_update)
             self.read_ods(intake, instance_name=instance_to_update)
 
