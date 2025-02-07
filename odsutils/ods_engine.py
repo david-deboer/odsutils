@@ -86,8 +86,7 @@ class ODS:
                 logger.error("Can't write to an instance -- no action.")
                 return
             output = intake
-
-        if adds in self.ods.keys():
+        if isinstance(adds, str) and adds in self.ods.keys():
             instance_to_add = adds
         elif isinstance(adds, list):
             instance_to_add = 'instance_to_add'

@@ -157,10 +157,11 @@ class ODSInstance:
                 if key in self.standard.ods_fields:
                     self.input_sets.setdefault(key, set())
                     self.input_sets[key].add(val)
-                    if key == self.standard.start and entry[key] < self.earliest:
-                        self.earliest = copy(entry[key])
-                    elif key == self.standard.stop and entry[key] > self.latest:
-                        self.latest = copy(entry[key])
+                    if isinstance(entry[key], timetools.Time):
+                        if key == self.standard.start and entry[key] < self.earliest:
+                            self.earliest = copy(entry[key])
+                        elif key == self.standard.stop and entry[key] > self.latest:
+                            self.latest = copy(entry[key])
                 else:
                     self.input_sets['invalid'].add(key)
             is_valid, msg = self.standard.valid(entry)
