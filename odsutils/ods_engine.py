@@ -46,7 +46,7 @@ class ODS:
 
     def pipe(self, adds, intake, output=None):
         """
-        This is the "standard pipeline" of reading an existing ods file, removing old ones, adding new ones
+        This is the "standard pipeline" of reading an existing ods file, removing old entries, adding new ones
         and rewriting.
 
         Parameters

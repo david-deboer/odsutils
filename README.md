@@ -1,12 +1,14 @@
 # Operational Data Sharing (ODS)
 
-This reads, writes, updates and checks ODS lists.
+This reads, writes, updates and checks ODS records.
 
-Operational Data Sharing (ODS) is a protocol developed by NRAO in order to facilitate coexistance with the operation of satellite constellations, developed initially with conjuction with SpaceX with their Starlink satellite network. Ref.  This {\em ODSutils} codebase provides some utilities in order to implement and use it.  This codebase is meant to be stand-alone and so has a number of utilities for it and some other associated codebases.  The code may be installed by typing
+Operational Data Sharing (ODS) is a protocol developed by NRAO in order to facilitate coexistance with the operation of satellite constellations, developed initially with conjuction with SpaceX with their Starlink satellite network. Ref.  This {\em ODSutils} codebase provides some utilities in order to implement and use it.  This codebase is meant to be stand-alone and so has a number of utilities for it and some other associated codebases.  The code may be installed by typing 'pip install https://github.com/david-deboer/odsutils'
 
 The ``standard'' itself is defined is the {\tt ods\_standard.py} module.  The ODS standard is still under development and will evolve and different versions may be implemented there.
 
-An \underline{ODS file} is a json file with one top key {\tt ods\_data} containing a list of dictionaries with the parameters.  An \underline{ODS instance} is a list of one of these parameter sets and is handled in in the {\tt ods\_instance.py} module.  ODS instance(s) can be handled in the {\tt ods\_engine.py} module.  The other file in the package are tool/utility modules.
+An \underline{ODS file} is a json file with one top key {\tt ods\_data} containing a list of dictionaries with the parameters.  An \underline{ODS instance} is a list of one of these parameter sets and is handled in in the {\tt ods\_instance.py} module.  "Instances" are lists of ODS records, and sometimes it is helpful to have multiple in play. ODS instance(s) can be handled in the {\tt ods\_engine.py} module.  The other file in the package are tool/utility modules.
+
+
 
 There are currently two scripts
 \begin{itemize}
@@ -25,7 +27,6 @@ ODS checks are:
 1. all supplied record entries have the right "name"
 2. all entries are present and have the right type
 4. sources above horizon (update_by_elevation)
-5. observations don't overlap (update_by_continuity)
 
 Standard pip install.
 
