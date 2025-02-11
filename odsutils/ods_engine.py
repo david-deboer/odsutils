@@ -56,7 +56,7 @@ class ODS:
 
         Parameters
         ----------
-        add : list or str or dict
+        adds : list or str or dict
             List of ods records to add or filename for records, or ods instance name
         intake : str
             ODS file to read or URL to use, or ods instance name
@@ -103,6 +103,7 @@ class ODS:
 
         self.merge(instance_to_add, instance_to_update)
         self.cull_by_time('now', 'stale', instance_name=instance_to_update)
+        self.cull_by_duplicate(instance_name=instance_to_update)
         self.write_ods(output, instance_name=instance_to_update)
 
     def new_ods_instance(self, instance_name, version='latest', set_as_working=False):
