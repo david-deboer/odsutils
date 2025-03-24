@@ -140,6 +140,7 @@ def wait(target, verbose=True):
 
     """
     from time import sleep
+    now = interpret_date('now', fmt='Time')
     if isinstance(target, (float, int)):
         remaining_time = target
     elif isinstance(target, timedelta):
@@ -147,7 +148,6 @@ def wait(target, verbose=True):
     elif isinstance(target, TimeDelta):
         remaining_time = target.to('second').value
     else:
-        now = interpret_date('now', fmt='Time')
         target = interpret_date(target, fmt='Time')
         if target <= now:
             print("Target time is in the past -- returning None")
@@ -156,7 +156,8 @@ def wait(target, verbose=True):
 
     # Sleep for the remaining time
     if verbose:
-        print(f"Waiting for {remaining_time:.2f} seconds")
+        target_time = now + TimeDelta(remaining_time, format='sec')
+        print(f"Waiting for {remaining_time:.2f} seconds  (until {target_time})")
     sleep(remaining_time)
     return remaining_time
 
