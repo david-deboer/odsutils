@@ -109,22 +109,23 @@ class ODS:
         self.cull_by_time('now', 'stale', instance_name=instance_to_update)
         self.cull_by_duplicate(instance_name=instance_to_update)
         self.write_ods(output, instance_name=instance_to_update)
-    #def write_ods(self, file_name, instance_name=None):
-        """
-        Export the ods to an ods json file.
+    #THIS IS THE OLD VERSION -- THE NEW ONE IS COMPATIBLE WITH PIPE
+    # def write_ods(self, file_name, instance_name=None):
+    #     """
+    #     Export the ods to an ods json file.
 
-        Parameters
-        ----------
-        file_name : str
-            Name of ods json file to write
-        instance_name : str or None
-            ODS instance
+    #     Parameters
+    #     ----------
+    #     file_name : str
+    #         Name of ods json file to write
+    #     instance_name : str or None
+    #         ODS instance
 
-        """
-        instance_name = self.get_instance_name(instance_name)
-        if not self.ods[instance_name].number_of_records:
-            logger.warning("Writing an empty ODS file!")
-        self.ods[instance_name].write(file_name)
+    #     """
+    #     instance_name = self.get_instance_name(instance_name)
+    #     if not self.ods[instance_name].number_of_records:
+    #         logger.warning("Writing an empty ODS file!")
+    #     self.ods[instance_name].write(file_name)
 
 
     def new_ods_instance(self, instance_name, version='latest', set_as_working=False):
