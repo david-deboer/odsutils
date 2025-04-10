@@ -57,13 +57,13 @@ class ODS:
         Parameters
         ----------
         filename : str
-            ODS file to read or URL to use
+            ODS file to write (and read if intake is None)
         adds : list or str or dict
             List of ods records to add or filename for records, or ods instance name
         intake : str
             ODS file to read or URL to use, or ods instance name
-        output : str --> now filename!!
-            ODS file to write, if None, use intake
+        XXXoutput : str --> now filename!!
+            XXXODS file to write, if None, use intake
         defaults : dict or str
             Dictionary or filename of default values to use (see get_defaults_dict)
         conlog : str or False
@@ -82,14 +82,6 @@ class ODS:
             self.new_ods_instance(instance_name=instance_to_update)
             self.read_ods(intake, instance_name=instance_to_update)
 
-        if output is None:
-            if intake.startswith('http'):
-                logger.error("Can't write to a URL -- no action.")
-                return
-            if intake == instance_to_update:
-                logger.error("Can't write to an instance -- no action.")
-                return
-            output = intake
         if isinstance(adds, str) and adds in self.ods.keys():
             instance_to_add = adds
         elif isinstance(adds, list):
@@ -104,29 +96,12 @@ class ODS:
             instance_to_add = 'instance_to_add'
             self.new_ods_instance(instance_name=instance_to_add)
             self.read_ods(adds, instance_name=instance_to_add)
-
         self.merge(instance_to_add, instance_to_update)
         self.cull_by_time('now', 'stale', instance_name=instance_to_update)
         self.cull_by_duplicate(instance_name=instance_to_update)
-        self.write_ods(output, instance_name=instance_to_update)
-    #THIS IS THE OLD VERSION -- THE NEW ONE IS COMPATIBLE WITH PIPE
-    # def write_ods(self, file_name, instance_name=None):
-    #     """
-    #     Export the ods to an ods json file.
-
-    #     Parameters
-    #     ----------
-    #     file_name : str
-    #         Name of ods json file to write
-    #     instance_name : str or None
-    #         ODS instance
-
-    #     """
-    #     instance_name = self.get_instance_name(instance_name)
-    #     if not self.ods[instance_name].number_of_records:
-    #         logger.warning("Writing an empty ODS file!")
-    #     self.ods[instance_name].write(file_name)
-
+        if not self.ods[instance_to_update].number_of_records:
+            logger.warning("Writing an empty ODS file!")
+        self.ods[instance_to_update].write(filename)
 
     def new_ods_instance(self, instance_name, version='latest', set_as_working=False):
         """
