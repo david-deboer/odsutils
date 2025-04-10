@@ -49,18 +49,20 @@ class ODS:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def pipe(self, adds, intake, output=None, defaults=None, conlog='ERROR'):
+    def write_ods(self, filename, adds, intake=None, defaults=None, conlog='ERROR'):
         """
         This is the "standard pipeline" of reading an existing ods file, removing old entries, adding new ones
         and rewriting.
 
         Parameters
         ----------
+        filename : str
+            ODS file to read or URL to use
         adds : list or str or dict
             List of ods records to add or filename for records, or ods instance name
         intake : str
             ODS file to read or URL to use, or ods instance name
-        output : str
+        output : str --> now filename!!
             ODS file to write, if None, use intake
         defaults : dict or str
             Dictionary or filename of default values to use (see get_defaults_dict)
@@ -71,6 +73,8 @@ class ODS:
         self.log_settings.updateLevel('Console', conlog)
         self.get_defaults_dict(defaults=defaults)
 
+        if intake is None:
+            intake = copy(filename)
         if intake in self.ods.keys():
             instance_to_update = intake
         else:
@@ -105,6 +109,23 @@ class ODS:
         self.cull_by_time('now', 'stale', instance_name=instance_to_update)
         self.cull_by_duplicate(instance_name=instance_to_update)
         self.write_ods(output, instance_name=instance_to_update)
+    #def write_ods(self, file_name, instance_name=None):
+        """
+        Export the ods to an ods json file.
+
+        Parameters
+        ----------
+        file_name : str
+            Name of ods json file to write
+        instance_name : str or None
+            ODS instance
+
+        """
+        instance_name = self.get_instance_name(instance_name)
+        if not self.ods[instance_name].number_of_records:
+            logger.warning("Writing an empty ODS file!")
+        self.ods[instance_name].write(file_name)
+
 
     def new_ods_instance(self, instance_name, version='latest', set_as_working=False):
         """
@@ -614,24 +635,6 @@ class ODS:
             from numpy import zeros
             ticks = zeros(len(self.check.log_data.keys()))
             plt.plot(self.check.log_data.keys(), ticks, 'k|', markersize=15)
-
-
-    def write_ods(self, file_name, instance_name=None):
-        """
-        Export the ods to an ods json file.
-
-        Parameters
-        ----------
-        file_name : str
-            Name of ods json file to write
-        instance_name : str or None
-            ODS instance
-
-        """
-        instance_name = self.get_instance_name(instance_name)
-        if not self.ods[instance_name].number_of_records:
-            logger.warning("Writing an empty ODS file!")
-        self.ods[instance_name].write(file_name)
 
     def write_file(self, file_name, instance_name=None, sep=','):
         """
