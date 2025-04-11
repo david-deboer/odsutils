@@ -49,7 +49,7 @@ class ODS:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def write_ods(self, filename, adds, intake=None, defaults=None, conlog='ERROR'):
+    def write_ods(self, filename, adds=None, intake=None, defaults=None, conlog='ERROR'):
         """
         This is the "standard pipeline" of reading an existing ods file, removing old entries, adding new ones
         and rewriting.
@@ -57,13 +57,11 @@ class ODS:
         Parameters
         ----------
         filename : str
-            ODS file to write (and read if intake is None)
+            ODS file to write
         adds : list or str or dict
-            List of ods records to add or filename for records, or ods instance name
-        intake : str
-            ODS file to read or URL to use, or ods instance name
-        XXXoutput : str --> now filename!!
-            XXXODS file to write, if None, use intake
+            List of ods records to add or filename for records, or ods instance name, if None use standard
+        intake : str or None
+            ODS file to read or URL to use, or ods instance name or None
         defaults : dict or str
             Dictionary or filename of default values to use (see get_defaults_dict)
         conlog : str or False
@@ -73,16 +71,9 @@ class ODS:
         self.log_settings.updateLevel('Console', conlog)
         self.get_defaults_dict(defaults=defaults)
 
-        if intake is None:
-            intake = copy(filename)
-        if intake in self.ods.keys():
-            instance_to_update = intake
-        else:
-            instance_to_update = 'instance_to_update'
-            self.new_ods_instance(instance_name=instance_to_update)
-            self.read_ods(intake, instance_name=instance_to_update)
-
-        if isinstance(adds, str) and adds in self.ods.keys():
+        if adds is None:
+            instance_to_add = self.working_instance
+        elif isinstance(adds, str) and adds in self.ods.keys():
             instance_to_add = adds
         elif isinstance(adds, list):
             instance_to_add = 'instance_to_add'
@@ -92,10 +83,22 @@ class ODS:
             instance_to_add = 'instance_to_add'
             self.new_ods_instance(instance_name=instance_to_add)
             self.add_new_record(instance_name=instance_to_add, **adds)
-        else:
+        else:  # Assumes it is a filename of an ods file
             instance_to_add = 'instance_to_add'
             self.new_ods_instance(instance_name=instance_to_add)
             self.read_ods(adds, instance_name=instance_to_add)
+
+        if intake is None:
+            instance_to_update = None
+            instance_to_update = 'instance_to_update'
+            self.new_ods_instance(instance_name=instance_to_update)
+        elif intake in self.ods.keys():
+            instance_to_update = intake
+        else:
+            instance_to_update = 'instance_to_update'
+            self.new_ods_instance(instance_name=instance_to_update)
+            self.read_ods(intake, instance_name=instance_to_update)
+
         self.merge(instance_to_add, instance_to_update)
         self.cull_by_time('now', 'stale', instance_name=instance_to_update)
         self.cull_by_duplicate(instance_name=instance_to_update)
