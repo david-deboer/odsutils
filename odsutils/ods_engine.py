@@ -49,10 +49,15 @@ class ODS:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def write_ods(self, filename, adds=None, intake=None, defaults=None, conlog='ERROR'):
+    def write_ods(self, filename, adds=None, intake=None, cull=['time', 'duplicate']):
         """
-        This is the "standard pipeline" of reading an existing ods file, removing old entries, adding new ones
-        and rewriting.
+        This incorporates the "standard pipeline" of reading an existing ods file (intake), adding new ones (adds),
+        culling entries as indicated (cull) and writing the file (filename).
+
+        A filename must be provided.
+        If no 'adds' are provided, the working_instance is used.
+        If no 'intake' is provided, "adds" is the entire written ods, otherwise 'intake' gets updated with 'adds'.
+        Cull defaults to remove stale entries and duplicates, for no culling pass [].
 
         Parameters
         ----------
@@ -62,14 +67,10 @@ class ODS:
             List of ods records to add or filename for records, or ods instance name, if None use standard
         intake : str or None
             ODS file to read or URL to use, or ods instance name or None
-        defaults : dict or str
-            Dictionary or filename of default values to use (see get_defaults_dict)
-        conlog : str or False
-            One of the logging levels for console: 'DEBUG', 'INFO', 'WARNING', 'ERROR'
+        cull : list
+            List of culling options to apply: 'time' for stale entries, 'duplicate' for duplicates
 
         """
-        self.log_settings.updateLevel('Console', conlog)
-        self.get_defaults_dict(defaults=defaults)
 
         if adds is None:
             instance_to_add = self.working_instance
@@ -89,7 +90,6 @@ class ODS:
             self.read_ods(adds, instance_name=instance_to_add)
 
         if intake is None:
-            instance_to_update = None
             instance_to_update = 'instance_to_update'
             self.new_ods_instance(instance_name=instance_to_update)
         elif intake in self.ods.keys():
@@ -99,9 +99,12 @@ class ODS:
             self.new_ods_instance(instance_name=instance_to_update)
             self.read_ods(intake, instance_name=instance_to_update)
 
-        self.merge(instance_to_add, instance_to_update)
-        self.cull_by_time('now', 'stale', instance_name=instance_to_update)
-        self.cull_by_duplicate(instance_name=instance_to_update)
+        self.merge(from_ods=instance_to_add, to_ods=instance_to_update, remove_duplicates=True)
+
+        if 'time' in cull:
+            self.cull_by_time('now', 'stale', instance_name=instance_to_update)
+        if 'duplicate' in cull:
+            self.cull_by_duplicate(instance_name=instance_to_update)
         if not self.ods[instance_to_update].number_of_records:
             logger.warning("Writing an empty ODS file!")
         self.ods[instance_to_update].write(filename)
