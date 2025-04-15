@@ -105,12 +105,13 @@ class ODS:
 
         self.merge(from_ods=instance_to_add, to_ods=instance_to_update, remove_duplicates=True)
 
+        pre_cull_num = copy(self.ods[instance_to_update].number_of_records)
         if 'time' in cull:
             self.cull_by_time('now', 'stale', instance_name=instance_to_update)
         if 'duplicate' in cull:
             self.cull_by_duplicate(instance_name=instance_to_update)
         if not self.ods[instance_to_update].number_of_records:
-            logger.warning("Writing an empty ODS file!")
+            logger.warning(f"Writing an empty ODS file!  Pre-cull count was {pre_cull_num}")
         self.ods[instance_to_update].write(filename)
 
     def new_ods_instance(self, instance_name, version='latest', set_as_working=False):
