@@ -54,7 +54,7 @@ class ODS:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def write_ods(self, filename, adds=None, original=None, cull=['time', 'duplicate']):
+    def write_ods(self, filename, adds=None, original=None, defaults=None, cull=['time', 'duplicate']):
         """
         This incorporates the "standard pipeline" of reading an existing ods file (original), adding new ones (adds),
         culling entries as indicated (cull) and writing the file (filename).
@@ -76,6 +76,8 @@ class ODS:
             List of culling options to apply: 'time' for stale entries, 'duplicate' for duplicates
 
         """
+        self.get_defaults_dict(defaults=defaults)
+ 
         if adds is None:
             instance_to_add = self.working_instance
         elif isinstance(adds, str) and adds in self.ods.keys():
