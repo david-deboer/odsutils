@@ -26,7 +26,7 @@ ODS lists may be updated/culled based on a few checks.
 ODS checks are:
 1. all supplied record entries have the right "name"
 2. all entries are present and have the right type
-4. sources above horizon (update_by_elevation)
+3. sources above horizon (update_by_elevation)
 
 Standard pip install.
 

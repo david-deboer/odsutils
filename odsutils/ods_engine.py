@@ -13,8 +13,13 @@ class ODS:
     """
     Utilities to handle ODS instances.
 
-    Maintains an internal self.ods[<working_instance>] ods record list that gets manipulated.
-    Adding the <working_instance> allows for flexibility, however generally one will only make/use one key denoted 'primary'.
+    The ODS instances are ods_instance.ODSInstance classes contained within the dictionary 'self.ods',
+    each identified by a unique key (working_instance).  Unless a different instance is specified, the
+    instance used is the one specified by 'self.working_instance, which is set to
+    ods_instance.DEFAULT_WORKING_INSTANCE by default.
+
+    The list of ODS records is stored in the 'entries' attribute of the ODSInstance class, and can be accessed
+    using the 'self.ods[working_instance].entries' attribute.
 
     """
     def __init__(self, version='latest', working_instance=ods_instance.DEFAULT_WORKING_INSTANCE,
@@ -49,14 +54,14 @@ class ODS:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def write_ods(self, filename, adds=None, intake=None, cull=['time', 'duplicate']):
+    def write_ods(self, filename, adds=None, original=None, cull=['time', 'duplicate']):
         """
-        This incorporates the "standard pipeline" of reading an existing ods file (intake), adding new ones (adds),
+        This incorporates the "standard pipeline" of reading an existing ods file (original), adding new ones (adds),
         culling entries as indicated (cull) and writing the file (filename).
 
         A filename must be provided.
         If no 'adds' are provided, the working_instance is used.
-        If no 'intake' is provided, "adds" is the entire written ods, otherwise 'intake' gets updated with 'adds'.
+        If no 'original' is provided, "adds" is the entire written ods, otherwise 'original' gets updated with 'adds'.
         Cull defaults to remove stale entries and duplicates, for no culling pass [].
 
         Parameters
@@ -64,14 +69,13 @@ class ODS:
         filename : str
             ODS file to write
         adds : list or str or dict
-            List of ods records to add or filename for records, or ods instance name, if None use standard
-        intake : str or None
+            List of ods records to add or filename for records, or ods instance name, if None use self.working_instance
+        original : str or None
             ODS file to read or URL to use, or ods instance name or None
         cull : list
             List of culling options to apply: 'time' for stale entries, 'duplicate' for duplicates
 
         """
-
         if adds is None:
             instance_to_add = self.working_instance
         elif isinstance(adds, str) and adds in self.ods.keys():
@@ -89,15 +93,15 @@ class ODS:
             self.new_ods_instance(instance_name=instance_to_add)
             self.read_ods(adds, instance_name=instance_to_add)
 
-        if intake is None:
+        if original is None:
             instance_to_update = 'instance_to_update'
             self.new_ods_instance(instance_name=instance_to_update)
-        elif intake in self.ods.keys():
-            instance_to_update = intake
+        elif original in self.ods.keys():
+            instance_to_update = original
         else:
             instance_to_update = 'instance_to_update'
             self.new_ods_instance(instance_name=instance_to_update)
-            self.read_ods(intake, instance_name=instance_to_update)
+            self.read_ods(original, instance_name=instance_to_update)
 
         self.merge(from_ods=instance_to_add, to_ods=instance_to_update, remove_duplicates=True)
 
