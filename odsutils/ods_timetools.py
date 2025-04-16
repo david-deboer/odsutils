@@ -31,10 +31,10 @@ def get_extra_offset(iddate):
         raise ValueError("Time offset must have a number and a time unit (e.g. '+2h', '-30m', '+15s'). ")
     direction = 1.0 if '+' in iddate else -1.0
     for trial in TUNITS:
-        if trial in extra:
+        if trial in extra[-1]:
             try:
                 extra_time = float(extra[-1].split(trial)[0]) * direction
-                return TimeDelta(extra_time * TUNITS(trial), format='sec')
+                return TimeDelta(extra_time * TUNITS[trial], format='sec')
             except ValueError:
                 continue
     raise ValueError("Time offset must have a number and a time unit (e.g. '+2h', '-30m', '+15s'). ")
