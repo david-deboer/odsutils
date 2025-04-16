@@ -8,6 +8,23 @@ TUNITS = {'day': 24.0 * 3600.0, 'd': 24.0 * 3600.0,
           'minute': 60.0,  'min': 60.0,  'm': 60.0,
           'second': 1.0, 'sec': 1.0, 's': 1.0}
 
+NAMED_TIMES = {'now': 0.0, 'current': 0.0, 'today': 0.0,
+               'yesterday': -24.0*3600.0,
+               'tomorrow': 24.0*3600.0}
+
+
+def check_named_times(iddate):
+    """
+    Check if iddate is a named time and return the corresponding dictionary with name, start time, and offset.
+    """
+    if isinstance(iddate, str):
+        iddate = iddate.lower()
+        for trial in NAMED_TIMES.keys():
+            if trial in iddate:
+                offset = TimeDelta(NAMED_TIMES[trial], format='sec')
+                return {'name': trial, 'start': Time.now() + offset, 'offset': offset}
+    return False
+
 
 def all_timezones():
     """
@@ -61,11 +78,14 @@ def get_tz(tz='sys', dt='now'):
     raise ValueError("Invalid timezone designation.")
 
 
-def t_delta(t1, val, unit):
-    dt = TimeDelta(val * TUNITS[unit], format='sec')
-    t1 = interpret_date(t1, fmt='Time', NoneReturn=None)
+def t_delta(t1, val, unit=None):
+    if isinstance(val, TimeDelta):
+        dt = val
+    else:
+        dt = TimeDelta(val * TUNITS[unit], format='sec')
     if t1 is None:
         return dt
+    t1 = interpret_date(t1, fmt='Time', NoneReturn=None)
     return t1 + dt
 
 
@@ -94,21 +114,10 @@ def interpret_date(iddate, fmt='Time', NoneReturn=None):
         if fmt == 'Time':
             iddate = Time(iddate)
         return iddate
-    if isinstance(iddate, str) and '/' in iddate:  # iddate +/- offset
-        mult = {'d': 24.0*3600.0, 'h': 3600.0, 'm': 60.0, 's': 1.0}
-        iddate, offs = iddate.split('/')
-        iddate = interpret_date(iddate, fmt='Time')
-        try:
-            dt = mult[offs[-1]] * float(offs[:-1])
-        except KeyError:
-            dt = 60.0 * float(offs)  # default to minutes
-        iddate += TimeDelta(dt, format='sec')
-    if iddate == 'today' or iddate == 'now' or iddate == 'current':
-        iddate = Time.now()
-    elif iddate == 'yesterday':
-        iddate = Time.now() - TimeDelta(24.0*3600.0, format='sec')
-    elif iddate == 'tomorrow':
-        iddate = Time.now() + TimeDelta(24.0*3600.0, format='sec')
+    named = check_named_times(iddate)
+    if named:
+        if '+' or '-' in iddate:
+            extra = iddate.split('+')[-1] if '+' in iddate else iddate.split('-')[-1]
     elif len(str(iddate)) == 4:  # assume just a year
         iddate = Time(f"{iddate}-01-01")
     elif isinstance(iddate, str) and len(iddate) == 7:  # assume YYYY-MM
