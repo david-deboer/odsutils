@@ -18,12 +18,26 @@ def check_named_times(iddate):
     Check if iddate is a named time and return the corresponding dictionary with name, start time, and offset.
     """
     if isinstance(iddate, str):
-        iddate = iddate.lower()
+        iddate = iddate.strip().lower()
         for trial in NAMED_TIMES.keys():
-            if trial in iddate:
+            if iddate.startswith(trial):
                 offset = TimeDelta(NAMED_TIMES[trial], format='sec')
                 return {'name': trial, 'start': Time.now() + offset, 'offset': offset}
     return False
+
+def get_extra_offset(iddate):
+    extra = iddate.split('+') if '+' in iddate else iddate.split('-')
+    if len(extra) == 1:
+        raise ValueError("Time offset must have a number and a time unit (e.g. '+2h', '-30m', '+15s'). ")
+    direction = 1.0 if '+' in iddate else -1.0
+    for trial in TUNITS:
+        if trial in extra:
+            try:
+                extra_time = float(extra[-1].split(trial)[0]) * direction
+                return TimeDelta(extra_time * TUNITS(trial), format='sec')
+            except ValueError:
+                continue
+    raise ValueError("Time offset must have a number and a time unit (e.g. '+2h', '-30m', '+15s'). ")
 
 
 def all_timezones():
@@ -116,8 +130,10 @@ def interpret_date(iddate, fmt='Time', NoneReturn=None):
         return iddate
     named = check_named_times(iddate)
     if named:
-        if '+' or '-' in iddate:
-            extra = iddate.split('+')[-1] if '+' in iddate else iddate.split('-')[-1]
+        if '+' in iddate or '-' in iddate:
+            iddate = named['start'] + get_extra_offset(iddate)
+        else:
+            iddate = named['start']
     elif len(str(iddate)) == 4:  # assume just a year
         iddate = Time(f"{iddate}-01-01")
     elif isinstance(iddate, str) and len(iddate) == 7:  # assume YYYY-MM
