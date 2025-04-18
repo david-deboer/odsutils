@@ -6,6 +6,7 @@ from . import ods_timetools as timetools
 import logging
 from . import LOG_FILENAME, LOG_FORMATS
 
+# Set up the logger
 logger = logging.getLogger(__name__)
 logger.setLevel('DEBUG')
 
@@ -54,67 +55,74 @@ class ODS:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def write_ods(self, filename, adds=None, original=None, defaults=None, cull=['time', 'duplicate']):
+    def post_ods(self, filename, instance_name='primary'):
         """
-        This incorporates the "standard pipeline" of reading an existing ods file (original), adding new ones (adds),
-        culling entries as indicated (cull) and writing the file (filename).
-
-        A filename must be provided.
-        If no 'adds' are provided, the working_instance is used.
-        If no 'original' is provided, "adds" is the entire written ods, otherwise 'original' gets updated with 'adds'.
-        Cull defaults to remove stale entries and duplicates, for no culling pass [].
+        Post (i.e. write) a given instance to a filename at path.
 
         Parameters
         ----------
         filename : str
-            ODS file to write
-        adds : list or str or dict
-            List of ods records to add or filename for records, or ods instance name, if None use self.working_instance
-        original : str or None
-            ODS file to read or URL to use, or ods instance name or None
-        cull : list
-            List of culling options to apply: 'time' for stale entries, 'duplicate' for duplicates
+            ODS filename to write
+        instance_name : str
+            Name of instance to write, defaults to 'primary'
 
         """
-        self.get_defaults_dict(defaults=defaults)
- 
-        if adds is None:
-            instance_to_add = self.working_instance
-        elif isinstance(adds, str) and adds in self.ods.keys():
-            instance_to_add = adds
-        elif isinstance(adds, list):
-            instance_to_add = 'instance_to_add'
-            self.new_ods_instance(instance_name=instance_to_add)
-            self.add_from_list(adds, instance_name=instance_to_add)
-        elif isinstance(adds, dict):
-            instance_to_add = 'instance_to_add'
-            self.new_ods_instance(instance_name=instance_to_add)
-            self.add_new_record(instance_name=instance_to_add, **adds)
-        else:  # Assumes it is a filename of an ods file
-            instance_to_add = 'instance_to_add'
-            self.new_ods_instance(instance_name=instance_to_add)
-            self.read_ods(adds, instance_name=instance_to_add)
+        instance_name = self.get_instance_name(instance_name)
+        if not self.ods[instance_name].number_of_records:
+            logger.warning("Writing an empty ODS file!")
+        self.ods[instance_name].write(filename)
 
-        if original is None:
-            instance_to_update = 'instance_to_update'
-            self.new_ods_instance(instance_name=instance_to_update)
-        elif original in self.ods.keys():
-            instance_to_update = original
-        else:
-            instance_to_update = 'instance_to_update'
-            self.new_ods_instance(instance_name=instance_to_update)
-            self.read_ods(original, instance_name=instance_to_update)
+    def assemble_ods(self, directory, post_to=None, update_local=True, cull=['time', 'duplicate']):
+        """
+        This will assemble an ODS file from all the files in a directory, culling duplicates and stale entries.
 
-        self.merge(from_ods=instance_to_add, to_ods=instance_to_update, remove_duplicates=True)
+        Parameters
+        ----------
+        diretory : str
+            Directory to search for ODS files
+        post_to : str, None
+            If not None, post the assembled ODS to this filename.
+        update_local : bool
+            Flag to update the local ods files for stale entries and duplicates
+        cull : list
+            List of culling options to apply: 'time' for stale entries, 'duplicate' for duplicates
+            
+        """
+        from glob import glob
+        import os.path as op
+        from os import remove
+        assembly_instance_name = 'assembly'
+        ods_files = glob(op.join(directory, 'ods_*.json'))
+        if len(ods_files) == 0:
+            logger.warning(f"No ODS files found in {directory}.")
+            return
+        self.new_ods_instance(instance_name=assembly_instance_name)
+        for ods_file in ods_files:
+            self.read_ods(ods_file, instance_name=ods_file)
+            self.merge(from_ods=ods_file, to_ods=assembly_instance_name)
 
-        pre_cull_num = copy(self.ods[instance_to_update].number_of_records)
         if 'time' in cull:
-            self.cull_by_time('now', 'stale', instance_name=instance_to_update)
+            self.cull_by_time('now', 'stale', instance_name=assembly_instance_name)
         if 'duplicate' in cull:
-            self.cull_by_duplicate(instance_name=instance_to_update)
-        if not self.ods[instance_to_update].number_of_records:
-            logger.warning(f"Writing an empty ODS file!  Pre-cull count was {pre_cull_num}")
-        self.ods[instance_to_update].write(filename)
+            self.cull_by_duplicate(instance_name=assembly_instance_name)
+
+        if update_local:
+            for ods_file in ods_files:
+                self.cull_by_time('now', 'stale', instance_name=ods_file)
+                self.cull_by_duplicate(instance_name=ods_file)
+                if self.ods[ods_file].number_of_records:
+                    self.post_ods(ods_file, instance_name=ods_file)
+                else:
+                    logger.warning(f"Removing {ods_file} since it has no future records.")
+                    try:
+                        remove(ods_file)
+                    except OSError as e:
+                        logger.error(f"Failed to remove {ods_file}: {e}")
+
+        if post_to is not None:
+            # Post the assembled ODS to a file
+            self.post_ods(post_to, instance_name=assembly_instance_name)
+            logger.info(f"Posted assembled ODS to {post_to}")
 
     def new_ods_instance(self, instance_name, version='latest', set_as_working=False):
         """
