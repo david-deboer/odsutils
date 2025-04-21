@@ -98,8 +98,9 @@ class ODS:
             return
         self.new_ods_instance(instance_name=assembly_instance_name)
         for ods_file in ods_files:
-            self.read_ods(ods_file, instance_name=ods_file)
-            self.merge(from_ods=ods_file, to_ods=assembly_instance_name)
+            if isinstance(ods_file, str) and ods_file.endswith('json'):
+                self.read_ods(ods_file, instance_name=ods_file)
+                self.merge(from_ods=ods_file, to_ods=assembly_instance_name)
 
         if 'time' in cull:
             self.cull_by_time('now', 'stale', instance_name=assembly_instance_name)
