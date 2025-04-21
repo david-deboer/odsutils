@@ -99,6 +99,7 @@ class ODS:
         self.new_ods_instance(instance_name=assembly_instance_name)
         for ods_file in ods_files:
             if isinstance(ods_file, str) and ods_file.endswith('json'):
+                self.new_ods_instance(instance_name=ods_file)
                 self.read_ods(ods_file, instance_name=ods_file)
                 self.merge(from_ods=ods_file, to_ods=assembly_instance_name)
 
@@ -194,10 +195,7 @@ class ODS:
             Name of instance to use
 
         """
-        print("Reading ODS from", ods_input)
-        print("instance_name", instance_name)
         instance_name = self.get_instance_name(instance_name)
-        print("instance_name", instance_name)
         is_valid = self.ods[instance_name].read(ods_input)
         if not is_valid:
             logger.warning(f"Failed to read {ods_input} -- keeping empty instance.")
