@@ -194,7 +194,10 @@ class ODS:
             Name of instance to use
 
         """
+        print("Reading ODS from", ods_input)
+        print("instance_name", instance_name)
         instance_name = self.get_instance_name(instance_name)
+        print("instance_name", instance_name)
         is_valid = self.ods[instance_name].read(ods_input)
         if not is_valid:
             logger.warning(f"Failed to read {ods_input} -- keeping empty instance.")
