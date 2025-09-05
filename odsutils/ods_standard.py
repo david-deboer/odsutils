@@ -1,9 +1,58 @@
 from . import ods_timetools as timetools
 
 
-LATEST = 'A'
-AVAILABLE_STANDARDS = ['A']
+LATEST = 'B'
+AVAILABLE_STANDARDS = ['A', 'B']
 
+
+class Standard_Version_B:
+    """
+    Contains elements defining the ODS standard for Version B as at Sept 2025
+
+    Expand as versions come along -- currently very clunky!  The version numbers should probably be JSON files
+
+    """
+    fields = {
+        'site_id': str,
+        'site_lat_deg': float,
+        'site_lon_deg': float,
+        'site_el_m': float,
+        'src_id': str,
+        'corr_integ_time_sec': float,
+        'src_ra_j2000_deg': float,
+        'src_dec_j2000_deg': float,
+        'src_start_utc': str,
+        'src_end_utc': str,
+        'slew_sec': float,
+        'trk_rate_dec_deg_per_sec': float,
+        'trk_rate_ra_deg_per_sec': float,
+        'freq_lower_hz': float,
+        'freq_upper_hz': float,
+        'version': str,
+        'dish_diameter_m': float,
+        'subarray': int,
+    }
+
+    sort_order_time = ['src_start_utc', 'src_end_utc', 'site_id', 'site_lat_deg', 'site_lon_deg', 'site_el_m',
+                       'src_id', 'corr_integ_time_sec', 'src_ra_j2000_deg', 'src_dec_j2000_deg', 'slew_sec',
+                       'trk_rate_dec_deg_per_sec', 'trk_rate_ra_deg_per_sec', 'freq_lower_hz', 'freq_upper_hz',
+                       'version', 'dish_diameter_m', 'subarray']
+
+
+    def __init__(self):
+        self.transfer_keys = {
+            'observatory': 'site_id',
+            'lat': 'site_lat_deg',
+            'lon': 'site_lon_deg',
+            'ele': 'site_el_m',
+            'source': 'src_id',
+            'ra': 'src_ra_j2000_deg',
+            'dec': 'src_dec_j2000_deg',
+            'start': 'src_start_utc',
+            'stop': 'src_end_utc'
+        }
+        self.meta_fields = {'data_key': 'ods_data',
+                            'time_fields': ['src_start_utc', 'src_end_utc']}
 
 class Standard_Version_A:
     """
@@ -94,6 +143,10 @@ class Standard:
         """
         if self.version == 'A':
             self.standard = Standard_Version_A()
+        elif self.version == 'B':
+            self.standard = Standard_Version_B()
+        else:
+            raise ValueError(f"{self.version} is not an available standard.")
         self.ods_fields = self.standard.fields
         self.sort_order_time = self.standard.sort_order_time
         self.data_key = self.standard.meta_fields['data_key']

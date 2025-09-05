@@ -25,6 +25,8 @@ ods.assemble_ods('/directory_for_holding_ODS_files', post_to='/directory_for_upl
 Note that ods.read_ods() can also read in a file if you give it a filename, or pull a json from the web if given a URL.
 `ods.assemble_ods` will cull old entries, as well as remove duplicates.
 
+IT ASSUMES THAT ALL FIELDS ARE PRESENT AND OF THE CORRECT FORMAT.  OTHERWISE IT WILL IGNORE IT.
+
 If you don't need to assemble, you can just post directly to '/directory_for_uploading_file/ods.json'.
 
 Additionally, there are two scripts
