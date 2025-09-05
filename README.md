@@ -8,12 +8,29 @@ The ``standard'' itself is defined is the {\tt ods\_standard.py} module.  The OD
 
 An \underline{ODS file} is a json file with one top key {\tt ods\_data} containing a list of dictionaries with the parameters.  An \underline{ODS instance} is a list of one of these parameter sets and is handled in in the {\tt ods\_instance.py} module.  "Instances" are lists of ODS records, and sometimes it is helpful to have multiple in play. ODS instance(s) can be handled in the {\tt ods\_engine.py} module.  The other file in the package are tool/utility modules.
 
+The pipeline is to import ODS into your code and then post the ODS record.  To handle multiple observers that need to generate an ODS there is the concept of "assembling" an overall ODS file.  To help, there are two methods used:  `post_to` and `assemble_ods`.
 
+`post_to` just writes an ODS instance to a file
+`assemble_ods` reads in all ODS files from a directory, assembles them and can then (optionally) post that.
+The code snippet used is then
+```
+from odsutils import ods_engine
+ods = ods_engine.ODS()
+list_containing_dicts_with_ODS_values = [{'src_ra_j2000_deg': 123.0, 'src_dec_j2000_deg': -23.0, 'src_start_utc': '2025-09-28T11:25:45',
+      'src_end_utc': '2025-09-28T14:25:45', ...}, ...]
+ods.read_ods(list_containing_dicts_with_ODS_values)
+ods.post_ods('/directory_for_holding_ODS_files/ods_someprojectname.json')
+ods.assemble_ods('/directory_for_holding_ODS_files', post_to='/directory_for_uploading_file/ods.json')
+```
+Note that ods.read_ods() can also read in a file if you give it a filename, or pull a json from the web if given a URL.
+`ods.assemble_ods` will cull old entries, as well as remove duplicates.
 
-There are currently two scripts
+If you don't need to assemble, you can just post directly to '/directory_for_uploading_file/ods.json'.
+
+Additionally, there are two scripts
 \begin{itemize}
     \item {\tt odsuser.py}:  has options allowing access to various {\tt ods\_engine.py} methods.
-    \item {\tt ods\_online\_monitor.py}: grabs and saves a summary of active ODS records
+    \item {\tt ods\_online\_monitor.py}: grabs and saves a summary of active ODS records from a URL
 \end{itemize}
 
 Reading may come from an existing ODS file, from a datafile or be provided by a dictionary or Namespace.
