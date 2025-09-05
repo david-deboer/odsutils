@@ -303,13 +303,13 @@ class ODS:
     ##############################################MODIFY#########################################
     # Methods that modify the existing self.ods
 
-    def update_entry(self, entry, updates, instance_name=None):
+    def update_entry(self, entry_num, updates, instance_name=None):
         """
         Update the entry number with the updates dict values.
 
         Parameters
         ----------
-        entry : int
+        entry_num : int
             Number of entry to update
         updates : dict
             Dictionary containing the updates
@@ -318,13 +318,8 @@ class ODS:
 
         """
         instance_name = self.get_instance_name(instance_name)
-        updates = self.ods[instance_name].dump('all', updates, fmt='InternalRepresentation')
-        if isinstance(entry, int):
-            self.ods[instance_name].entries[entry].update(updates)
-        else:
-            logger.info('No other update entry options.')
-            return
-        self.ods[instance_name].gen_info()
+        n_updates = self.ods[instance_name].update_entry(entry_num, updates)
+        logger.info(f"Updated {instance_name} entry {entry_num} with {n_updates} changes.")
 
     def update_by_elevation(self, el_lim_deg=10.0, dt_sec=120, instance_name=None, show_plot=False):
         """

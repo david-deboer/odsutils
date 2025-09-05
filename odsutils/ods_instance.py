@@ -58,9 +58,36 @@ class ODSInstance:
             rec[key] = self.dump(key, val, fmt='InternalRepresentation')
         self.entries.append(rec)
 
+    def update_entry(self, entry_num, entry_updates):
+        """
+        Update an existing entry with new values.
+
+        Parameter
+        ---------
+        entry_num : int
+            Entry number to update
+        entry_updates : dict
+            Dictionary containing new fields.
+
+        Return
+        ------
+        Number of keys update
+
+        """
+        if entry_num >= len(self.entries):
+            return 0
+        ctr = 0
+        for key, val in entry_updates.items():
+            if key in self.standard.ods_fields:
+                self.entries[entry_num][key] = self.dump(key, val, fmt='InternalRepresentation')
+                ctr += 1
+        if ctr:
+            self.gen_info()
+        return ctr
+
     def read(self, ods_input):
         """
-        Read in an existing ods file or dictionary and pull out input sets.
+        Read in an existing ods file or dictionary and pull out input sets.  This appends to any existing entries.
 
         Checking is done in ODS (arguably should probably be done here)
 
@@ -101,7 +128,7 @@ class ODSInstance:
         if not input_ods_data:
             return False
 
-        if self.standard.data_key in input_ods_data:
+        if self.standard.data_key in input_ods_data:  # In case it read in and ODS file we just want the list
             input_ods_data = input_ods_data[self.standard.data_key]
         self.entries += self.dump('all', input_ods_data, fmt='InternalRepresentation')
         self.gen_info()
