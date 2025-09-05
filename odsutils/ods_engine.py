@@ -57,7 +57,7 @@ class ODS:
 
     def post_ods(self, filename, instance_name='primary'):
         """
-        Post (i.e. write) a given instance to a filename at path.
+        Post (i.e. write) a given instance to a filename at path as an ODS json file.
 
         Parameters
         ----------
@@ -72,9 +72,14 @@ class ODS:
             logger.warning("Writing an empty ODS file!")
         self.ods[instance_name].write(filename)
 
-    def assemble_ods(self, directory, post_to=None, update_local=True, cull=['time', 'duplicate']):
+    def assemble_ods(self, directory, post_to=None, initial_instance=None):
         """
         This will assemble an ODS file from all the files in a directory, culling duplicates and stale entries.
+        It will initialize the assembled ODS with the initial_instance if provided.
+        An empty one is created if none are found.
+
+        New ODS instances are created for each file found, as well as one called 'assembly' for the
+        assembled ODS.
 
         Parameters
         ----------
@@ -82,44 +87,28 @@ class ODS:
             Directory to search for ODS files
         post_to : str, None
             If not None, post the assembled ODS to this filename.
-        update_local : bool
-            Flag to update the local ods files for stale entries and duplicates
-        cull : list
-            List of culling options to apply: 'time' for stale entries, 'duplicate' for duplicates
+        initial_instance : str, None
+            If not None, use this instance to initialize the assembled ODS.
             
         """
         from glob import glob
         import os.path as op
-        from os import remove
         assembly_instance_name = 'assembly'
         ods_files = glob(op.join(directory, 'ods_*.json'))
-        if len(ods_files) == 0:
-            logger.warning(f"No ODS files found in {directory}.")
-            return
+        logger.info(f"Found {len(ods_files)} ODS files in {directory}.")
         self.new_ods_instance(instance_name=assembly_instance_name)
+        if initial_instance is not None:
+            if initial_instance in self.ods:
+                self.merge(from_ods=initial_instance, to_ods=assembly_instance_name)
+            else:
+                logger.warning(f"Initial instance {initial_instance} not found -- starting with empty ODS.")
         for ods_file in ods_files:
-            if isinstance(ods_file, str) and ods_file.endswith('json'):
-                self.new_ods_instance(instance_name=ods_file)
-                self.read_ods(ods_file, instance_name=ods_file)
-                self.merge(from_ods=ods_file, to_ods=assembly_instance_name)
+            self.new_ods_instance(instance_name=ods_file)
+            self.read_ods(ods_file, instance_name=ods_file)
+            self.merge(from_ods=ods_file, to_ods=assembly_instance_name)
 
-        if 'time' in cull:
-            self.cull_by_time('now', 'stale', instance_name=assembly_instance_name)
-        if 'duplicate' in cull:
-            self.cull_by_duplicate(instance_name=assembly_instance_name)
-
-        if update_local:
-            for ods_file in ods_files:
-                self.cull_by_time('now', 'stale', instance_name=ods_file)
-                self.cull_by_duplicate(instance_name=ods_file)
-                if self.ods[ods_file].number_of_records:
-                    self.post_ods(ods_file, instance_name=ods_file)
-                else:
-                    logger.warning(f"Removing {ods_file} since it has no future records.")
-                    try:
-                        remove(ods_file)
-                    except OSError as e:
-                        logger.error(f"Failed to remove {ods_file}: {e}")
+        self.cull_by_time('now', 'stale', instance_name=assembly_instance_name)
+        self.cull_by_duplicate(instance_name=assembly_instance_name)
 
         if post_to is not None:
             # Post the assembled ODS to a file
@@ -630,9 +619,9 @@ class ODS:
             ticks = zeros(len(self.check.log_data.keys()))
             plt.plot(self.check.log_data.keys(), ticks, 'k|', markersize=15)
 
-    def write_file(self, file_name, instance_name=None, sep=','):
+    def export2file(self, file_name, instance_name=None, sep=','):
         """
-        Export the ods to a data file.
+        Export the ods instance to a data file.
 
         Parameters
         ----------

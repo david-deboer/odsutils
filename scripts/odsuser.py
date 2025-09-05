@@ -86,9 +86,9 @@ if args.graph:
     ods.graph_ods()
 
 if args.write:
-    ods.write_ods(file_name=args.write)
+    ods.post_ods(file_name=args.write)
 
 if args.export is not None:
     if args.sep == 'auto':
         args.sep = ','
-    ods.write_file(file_name=args.export, sep=args.sep)
+    ods.export2file(file_name=args.export, sep=args.sep)
