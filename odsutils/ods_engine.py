@@ -111,7 +111,7 @@ class ODS:
         self.cull_by_duplicate(instance_name=assembly_instance_name)
 
         if post_to is not None:
-            # Post the assembled ODS to a file
+            # Post the assembled ODS to an ODS file
             self.post_ods(post_to, instance_name=assembly_instance_name)
             logger.info(f"Posted assembled ODS to {post_to}")
 

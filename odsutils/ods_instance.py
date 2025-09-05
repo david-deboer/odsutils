@@ -128,7 +128,7 @@ class ODSInstance:
         if not input_ods_data:
             return False
 
-        if self.standard.data_key in input_ods_data:  # In case it read in and ODS file we just want the list
+        if self.standard.data_key in input_ods_data:  # In case it reads in an ODS file, we just want the list
             input_ods_data = input_ods_data[self.standard.data_key]
         self.entries += self.dump('all', input_ods_data, fmt='InternalRepresentation')
         self.gen_info()
