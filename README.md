@@ -18,7 +18,7 @@ from odsutils import ods_engine
 ods = ods_engine.ODS()
 list_containing_dicts_with_ODS_values = [{'src_ra_j2000_deg': 123.0, 'src_dec_j2000_deg': -23.0, 'src_start_utc': '2025-09-28T11:25:45',
       'src_end_utc': '2025-09-28T14:25:45', ...}, ...]
-ods.read_ods(list_containing_dicts_with_ODS_values)
+ods.add_from_list(list_containing_dicts_with_ODS_values)
 ods.post_ods('/directory_for_holding_ODS_files/ods_someprojectname.json')
 ods.assemble_ods('/directory_for_holding_ODS_files', post_to='/directory_for_uploading_file/ods.json')
 ```
