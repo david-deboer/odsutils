@@ -489,12 +489,12 @@ class ODS:
     ##############################################ADD############################################
     # Methods that add to the existing self.ods
 
-    def add_new_record(self, instance_name=None, **kwargs):
+    def add_new_record(self, **kwargs):
         """
         Append a new record to self.ods.
 
         """
-        instance_name = self.get_instance_name(instance_name)
+        instance_name = self.get_instance_name(kwargs['instance_name'] if 'instance_name' in kwargs else None)
         self.ods[instance_name].new_record(kwargs, defaults=self.defaults)
         self.ods[instance_name].gen_info()
         self.instance_report(instance_name=instance_name)
