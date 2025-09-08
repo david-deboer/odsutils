@@ -36,7 +36,8 @@ class ODS:
             One of the logging levels for console: 'DEBUG', 'INFO', 'WARNING', 'ERROR'
         filelog : str, False
             One of the logging levels for file: 'DEBUG', 'INFO', 'WARNING', 'ERROR'
-        **kwargs : kept to catch old keywords
+        **kwargs : kept to catch keywords
+            'defaults' : dict, str, None
 
         """
         self.log_settings = logger_setup.Logger(logger, conlog=conlog, filelog=filelog, log_filename=LOG_FILENAME, path=None,
@@ -49,6 +50,8 @@ class ODS:
         self.new_ods_instance(working_instance, version=version, set_as_working=True)
         self.defaults = {}
         self.check = ODSCheck(alert=self.log_settings.conlog, standard=self.ods[working_instance].standard)
+        if 'defaults' in kwargs:
+            self.get_defaults_dict(kwargs['defaults'])
 
     def __enter__(self):
         return self
@@ -84,7 +87,7 @@ class ODS:
         Parameters
         ----------
         diretory : str
-            Directory to search for ODS files
+            Directory to search for ODS files (if a json filename is specified, will use its directory)
         post_to : str, None
             If not None, post the assembled ODS to this filename.
         initial_instance : str, None
@@ -93,6 +96,8 @@ class ODS:
         """
         from glob import glob
         import os.path as op
+        if directory.endswith('json'):
+            directory = op.dirname(directory)
         assembly_instance_name = 'assembly'
         ods_files = glob(op.join(directory, 'ods_*.json'))
         logger.info(f"Found {len(ods_files)} ODS files in {directory}.")
@@ -234,7 +239,7 @@ class ODS:
                 self.defaults = tools.read_json_file(fnkey[0])
                 if len(fnkey) == 2:
                     self.defaults = self.defaults[fnkey[1]]
-            elif defaults == 'from_ods':  # The only option for now, uses single-valued keys
+            elif defaults == 'from_ods':
                 self.defaults = {}
                 for key, val in self.ods[self.working_instance].input_sets.items():
                     if key != 'invalid' and len(val) == 1:
@@ -242,7 +247,6 @@ class ODS:
             else:
                 logger.warning(f"Not valid default case: {defaults}")
                 return
-
         logger.info(f"Default values from {defaults}:")
         for key, val in self.defaults.items():
             logger.info(f"\t{key:26s}  {val}")
