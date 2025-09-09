@@ -2,32 +2,58 @@
 
 This reads, writes, updates and checks ODS records.
 
-Operational Data Sharing (ODS) is a protocol developed by NRAO in order to facilitate coexistance with the operation of satellite constellations, developed initially with conjuction with SpaceX with their Starlink satellite network. Ref.  This {\em ODSutils} codebase provides some utilities in order to implement and use it.  This codebase is meant to be stand-alone and so has a number of utilities for it and some other associated codebases.  The code may be installed by typing 'pip install https://github.com/david-deboer/odsutils'
+Operational Data Sharing (ODS) is a protocol developed by NRAO in order to facilitate coexistance with the operation of satellite constellations, developed initially with conjuction with SpaceX with their Starlink satellite network to facilitate telescope boresight avoidance. Ref.  This `ODSutils` codebase provides some utilities in order to implement and use it.  This codebase is meant to be stand-alone and so has a number of utilities for it and some other associated codebases.  The code may be installed by typing `pip install https://github.com/david-deboer/odsutils`.
 
-The ``standard'' itself is defined is the {\tt ods\_standard.py} module.  The ODS standard is still under development and will evolve and different versions may be implemented there.
+The standard itself is defined is the `ods_standard.py` module (see NRAO website).  The ODS standard is still under development and will evolve and different versions may be implemented there.  There are currently two standards, denoted "A" and "B".  "A" is deprecated.
 
-An \underline{ODS file} is a json file with one top key {\tt ods\_data} containing a list of dictionaries with the parameters.  An \underline{ODS instance} is a list of one of these parameter sets and is handled in in the {\tt ods\_instance.py} module.  "Instances" are lists of ODS records, and sometimes it is helpful to have multiple in play. ODS instance(s) can be handled in the {\tt ods\_engine.py} module.  The other file in the package are tool/utility modules.
+An **ODS file** is a json file with one top key (`ods_data`) containing a list of dictionaries with the parameters.  Each element in this list is an **ods_record**.
 
-The pipeline is to import ODS into your code and then post the ODS record.  To handle multiple observers that need to generate an ODS there is the concept of "assembling" an overall ODS file.  To help, there are two methods used:  `post_to` and `assemble_ods`.
+An **ODS instance** is a list of ods_records and is handled in the `ods_instance.py` module.  "Instances" are lists of ODS records, and sometimes it is helpful to have multiple in play.  For example, when a new composite ODS file is assembled, multiple instances are created and merged.
 
-`post_to` just writes an ODS instance to a file
-`assemble_ods` reads in all ODS files from a directory, assembles them and can then (optionally) post that.
-The code snippet used is then
+ODS instance(s) can be handled in the **ods_engine.py** module.
+
+The general pipeline is as follows:
+
+1. Create an ODS file with the data for your observation (see below)
+2. Post the ODS file (the convention is ods*.json, where the * is a descriptor):
+  -  If this observation is the only ODS information to handle, post it directly for SpaceX and you are done.
+  -  If this observation is one of potentially many, post it to a "holding" directory for "assembly".
+3. If you assembling and posting, run the assembly method.  That method will remove old and duplicate ods_records.
+
+The code snippet below is for the just posting case:
+
 ```
 from odsutils import ods_engine
-ods = ods_engine.ODS()
-list_containing_dicts_with_ODS_values = [{'src_ra_j2000_deg': 123.0, 'src_dec_j2000_deg': -23.0, 'src_start_utc': '2025-09-28T11:25:45',
-      'src_end_utc': '2025-09-28T14:25:45', ...}, ...]
-ods.add_from_list(list_containing_dicts_with_ODS_values)
-ods.post_ods('/directory_for_holding_ODS_files/ods_someprojectname.json')
+ods = ods_engine.ODS(conlog='WARNING', defaults='<default file name>')
+...see create an ODS file below
+ods.post_ods('directory_for_uploading_file/ods.json')
+```
+
+This code snippet handles the pipeline for the full case:
+
+```
+from odsutils import ods_engine
+ods = ods_engine.ODS(conlog='WARNING', defaults='<default file name>')
+...see create an ODS file below
+ods.post_ods('/directory_for_holding_ODS_files/ods_descriptor.json')
 ods.assemble_ods('/directory_for_holding_ODS_files', post_to='/directory_for_uploading_file/ods.json')
 ```
+
+In the class instance call, `conlog='WARNING'` just sets the logging level and `default=<default file name>` sets a default file, as discussed below.  If no default file is given, None is used.
+
+# Create an ODS file
+As mentioned above, an ODS file is a list of ODS records (which is called an ODS instance).  It is in the JSON format and everything is under one key called `ods_data`.  Each ODS record is an observation, but each record must have the full number of ODS keys.
+
+Note that in specifying an observation, you typically don't want to include all of the ODS keys, which is why there is a defaults file.  If one is specified, when a new ODS record is created, it populates it with the default values then includes the observation parameters, like RA/Dec, start time, stop time, source ID.  If a defaults file is not specified, one must make sure to include all of the ODS parameters when you make a record.
+
+When you make an ods class instance via `ods = ods.ods_engine(...)` it creates a default ODS instance, which is probably all you need (that is, you don't have to worry about creating or handling multiple ODS instances) -- you just need to add ODS records to it.
+
+
 Note that ods.read_ods() can also read in a file if you give it a filename, or pull a json from the web if given a URL.
 `ods.assemble_ods` will cull old entries, as well as remove duplicates.
 
 IT ASSUMES THAT ALL FIELDS ARE PRESENT AND OF THE CORRECT FORMAT.  OTHERWISE IT WILL IGNORE IT.
 
-If you don't need to assemble, you can just post directly to '/directory_for_uploading_file/ods.json'.
 
 Additionally, there are two scripts
 \begin{itemize}
