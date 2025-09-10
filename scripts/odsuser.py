@@ -51,21 +51,21 @@ ap.add_argument('--notes', help="ODS field", default=None)
 
 args = ap.parse_args()
 
-ods = ods_engine.ODS(version=args.version, output=args.output.upper(), filelog=args.filelog)
+ods = ods_engine.ODS(version=args.version, conlog=args.output.upper(), filelog=args.filelog)
 if args.std_show:
     print(ods.ods[ods.working_instance].standard)
 
 if args.ods_file:
-    ods.read_ods(ods_input=args.ods_file)
+    ods.add(ods_input=args.ods_file)
     if args.defaults is None:
         args.defaults = 'from_ods'  # If nothing else defined, at least use this
-ods.get_defaults_dict(args.defaults)
+ods.get_defaults(args.defaults)
 
 if args.data_file:
-    ods.add_from_file(data_file_name=args.data_file, sep=args.sep, replace_char=args.replace_char, header_map=args.header_map)
+    ods.add(data_file_name=args.data_file, sep=args.sep, replace_char=args.replace_char, header_map=args.header_map)
 
 if args.src_end_utc is not None:  # Assume that this one will always be used outside of defaults
-    ods.add_from_namespace(ns=args)
+    ods.add(ns=args)
 
 if args.time_cull:
     ods.cull_by_time(cull_time=args.time_cull, cull_by=args.cull_by)
