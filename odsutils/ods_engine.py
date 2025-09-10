@@ -225,7 +225,7 @@ class ODS:
         self._flag_generate_instance_report = False
         self.add(defaults, instance_name='__defaults__', remove_duplicates=False)
         self.ods['__defaults__'].gen_info()
-        self.defaults = copy(self.ods['__defaults__'].input_set_len_1)
+        self.defaults = copy(self.ods['__defaults__'].input_set_len_1)  # Cryptic, but means all entries with only one record in the set
         logger.info(f"Default values from {defaults}:")
         for key, val in self.defaults.items():
             logger.info(f"\t{key:26s}  {val}")
@@ -262,7 +262,7 @@ class ODS:
         """Check which entry is active at ctime, if any."""
         self.new_ods_instance(instance_name='check_active')
         if isinstance(read_from, str):
-            self.read_ods(read_from, instance_name='check_active')
+            self.add(read_from, instance_name='check_active')
         else:
             logger.info("Not reading new ODS instance for check_active.")
         ctime = timetools.interpret_date(ctime, fmt='Time')

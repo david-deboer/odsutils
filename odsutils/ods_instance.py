@@ -56,7 +56,7 @@ class ODSInstance:
                 val = entry[key]
             elif key in defaults:
                 val = defaults[key]
-            rec[key] = self.dump(key, val, fmt='InternalRepresentation')
+            rec[key] = self._dump(key, val, fmt='InternalRepresentation')
         self.entries.append(rec)
 
     def update_entry(self, entry_num, entry_updates):
@@ -80,14 +80,13 @@ class ODSInstance:
             return 0
         ctr = 0
         if entry_updates == 'delete':
+            ctr = len(self.entries[entry_num])
             self.entries.pop(entry_num)
-            self.gen_info()
-            ctr = 1
         elif isinstance(entry_updates, dict):
             ctr = 0
             for key, val in entry_updates.items():
                 if key in self.standard.ods_fields:
-                    self.entries[entry_num][key] = self.dump(key, val, fmt='InternalRepresentation')
+                    self.entries[entry_num][key] = self._dump(key, val, fmt='InternalRepresentation')
                     ctr += 1
         if ctr:
             self.gen_info()
@@ -161,7 +160,7 @@ class ODSInstance:
             if key != 'invalid' and len(val) == 1:
                 self.input_set_len_1[key] = list(val)[0]
 
-    def dump(self, key, val, fmt='isoformat'):
+    def _dump(self, key, val, fmt='isoformat'):
         """
         Prep entry/entries for dumping to file or internal.
 
@@ -184,12 +183,12 @@ class ODSInstance:
             if isinstance(val, list):
                 entries = []
                 for entry in val:
-                    entries.append(self.dump('all', entry, fmt=fmt))
+                    entries.append(self._dump('all', entry, fmt=fmt))
                 return entries
             elif isinstance(val, dict):
                 this_entry = {}
                 for tkey, tval in val.items():
-                    this_entry[tkey] = self.dump(tkey, tval, fmt=fmt)
+                    this_entry[tkey] = self._dump(tkey, tval, fmt=fmt)
                 return this_entry
         elif key in self.standard.time_fields:
             return timetools.interpret_date(val, fmt=fmt)
@@ -220,7 +219,7 @@ class ODSInstance:
             header = ['Field    \    #'] + [str(i) for i in blk]
             data = []
             for key in order:
-                row = [key] + [self.dump(key, self.entries[i][key], fmt='isoformat') for i in blk]
+                row = [key] + [self._dump(key, self.entries[i][key], fmt='isoformat') for i in blk]
                 data.append(row)
             tble = tabulate(data, headers=header)
             full_table += tble + '\n' + '=' * len(tble.splitlines()[1]) + '\n'
@@ -260,7 +259,7 @@ class ODSInstance:
             Name of ods json file to write
 
         """
-        entries = self.dump('all', self.entries, fmt='ExternalFormat')
+        entries = self._dump('all', self.entries, fmt='ExternalFormat')
         tools.write_json_file(file_name, {self.standard.data_key: entries})
 
     def export2file(self, filename, cols='all', sep=','):
@@ -277,6 +276,6 @@ class ODSInstance:
             Separator to use
 
         """
-        entries = self.dump('all', self.entries, fmt='ExternalFormat')
+        entries = self._dump('all', self.entries, fmt='ExternalFormat')
         cols = list(self.standard.ods_fields.keys()) if cols == 'all' else tools.listify(cols)
         tools.write_data_file(filename, entries, cols, sep=sep)
