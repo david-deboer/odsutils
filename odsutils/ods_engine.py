@@ -514,7 +514,7 @@ class ODS:
             return
         instance_name = kwargs['instance_name'] if 'instance_name' in kwargs else None
         if isinstance(inp, dict):
-            self.new_record(inp, instance_name=instance_name)
+            self.new_record(**inp, instance_name=instance_name)
         elif isinstance(inp, list):
             remove_duplicates = kwargs['remove_duplicates'] if 'remove_duplicates' in kwargs else True
             self._flag_generate_instance_report = False

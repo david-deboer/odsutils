@@ -131,7 +131,6 @@ class ODSInstance:
         if self.standard.data_key in input_ods_data:  # In case it reads in an ODS file, we just want the list
             input_ods_data = input_ods_data[self.standard.data_key]
         self.entries += self.dump('all', input_ods_data, fmt='InternalRepresentation')
-        self.gen_info()
         return True
 
     def sort(self, keyorder='sort_order_time', collapse=True, reverse=False):
@@ -174,6 +173,8 @@ class ODSInstance:
             Time of latest record
 
         """
+        print("DEBUGGING _ REMOVE RETURN IN GEN_INFO")
+        return
         self.earliest = REF_LATEST_TIME
         self.latest = REF_EARLIEST_TIME
         self.number_of_records = len(self.entries)
@@ -220,20 +221,25 @@ class ODSInstance:
         """
         fmt = 'Time' if fmt == 'InternalRepresentation' else fmt
         fmt = 'isoformat' if fmt == 'ExternalFormat' else fmt
+        print(key, val)
         if key == 'all':
             if isinstance(val, list):
                 entries = []
                 for entry in val:
                     entries.append(self.dump('all', entry, fmt=fmt))
+                print("RETURNING ENTRIES", entries)
                 return entries
             elif isinstance(val, dict):
                 this_entry = {}
                 for tkey, tval in val.items():
                     this_entry[tkey] = self.dump(tkey, tval, fmt=fmt)
-                return this_entry
+                print("RETURNING THIS ENTRY", this_entry)
+                return [this_entry]
         elif key in self.standard.time_fields:
+            print("DUMPING TIME", val)
             return timetools.interpret_date(val, fmt=fmt)
         else:
+            print("RETURNING VAL", val)
             return val
 
     def view(self, order=['src_id', 'src_start_utc', 'src_end_utc'], number_per_block=5):
