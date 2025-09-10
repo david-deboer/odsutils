@@ -7,7 +7,7 @@ from . import ods_timetools as timetools
 DEFAULT_WORKING_INSTANCE = 'primary'
 PLOT_AZEL = 'Az vs El'
 PLOT_TIMEEL = 'Time vs El'
-REF_LATEST_TIME = timetools.interpret_date('2026-12-31T23:59', fmt='Time')
+REF_LATEST_TIME = timetools.interpret_date('2030-12-31T23:59', fmt='Time')
 REF_EARLIEST_TIME = timetools.interpret_date('2020-01-01T00:00', fmt='Time')
 
 
@@ -196,6 +196,10 @@ class ODSInstance:
                 self.valid_records.append(ctr)
             else:
                 self.invalid_records[ctr] = msg
+        self.input_set_len_1 = {}
+        for key, val in self.input_sets.items():
+            if key != 'invalid' and len(val) == 1:
+                self.input_set_len_1[key] = list(val)[0]
 
     def dump(self, key, val, fmt='isoformat'):
         """

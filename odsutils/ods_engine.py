@@ -47,11 +47,11 @@ class ODS:
         # ###
         self.version = version
         self.ods = {}
-        self.new_ods_instance(working_instance, version=version, set_as_working=True)
         self.defaults = {}
+        self.new_ods_instance(working_instance, version=version, set_as_working=True)
         self.check = ODSCheck(alert=self.log_settings.conlog, standard=self.ods[working_instance].standard)
         if 'defaults' in kwargs:
-            self.get_defaults_dict(kwargs['defaults'])
+            self.get_defaults(kwargs['defaults'])
 
     def __enter__(self):
         return self
@@ -120,7 +120,7 @@ class ODS:
             self.post_ods(post_to, instance_name=assembly_instance_name)
             logger.info(f"Posted assembled ODS to {post_to}")
 
-    def new_ods_instance(self, instance_name, version='latest', set_as_working=False):
+    def new_ods_instance(self, instance_name, version='latest', set_as_working=False, overwrite=False):
         """
         Create a blank ODS instance and optionally set as the working instance.
 
@@ -134,6 +134,12 @@ class ODS:
             Flag to reset the working_instance to this instance_name.
 
         """
+        if instance_name in self.ods.keys():
+            logger.warning(f"ODS instance {instance_name} already exists.")
+            if not overwrite:
+                return
+            else:
+                logger.info(f"Overwriting ODS instance {instance_name}.")
         self.ods[instance_name] = ods_instance.ODSInstance(
             instance_name = instance_name,
             version = version
@@ -189,43 +195,35 @@ class ODS:
         else:
             logger.info(f"{self.ods[instance_name].number_of_records} are all valid.")
 
-    def get_defaults_dict(self, defaults='from_ods'):
+    def get_defaults(self, defaults, version='latest'):
         """
+        This takes in any of the same inputs as self.add() to populate the self.defaults dictionary.  It selects all of the entry sets with a length of 1.
+
         Parameter
         ---------
-        defaults : dict, str, None
+        defaults : any of
             ods record default values (keys are standard.ods_fields)
             - dict provides the actual default key/value pairs
             - str 
               (a) if starts with ':', uses "special case" of the from_ods input sets (can add options...)
               (b) is a filename with the defaults as a json
                   if there is a ':', then it is that filename preceding and the key after the :
-        
+        version : str
+            Standard version to use.
+
         Attribute
         ---------
         defaults : dict
             Dictionary containing whatever ods records defaults are provided.
+        new_ods_instance : creates a new instance called '__defaults__' to hold the defaults input
 
         """
-        if defaults is None:  # No change to existing self.defaults
+        self.new_ods_instance('__defaults__', version=version, set_as_working=False, overwrite=True)
+        if defaults is None:
             return
-        if isinstance(defaults, dict):
-            self.defaults = copy(defaults)
-            defaults = 'input_dict'
-        elif isinstance(defaults, str):
-            if '.json' in defaults:
-                fnkey = defaults.split(':')
-                self.defaults = tools.read_json_file(fnkey[0])
-                if len(fnkey) == 2:
-                    self.defaults = self.defaults[fnkey[1]]
-            elif defaults == 'from_ods':
-                self.defaults = {}
-                for key, val in self.ods[self.working_instance].input_sets.items():
-                    if key != 'invalid' and len(val) == 1:
-                        self.defaults[key] = list(val)[0]
-            else:
-                logger.warning(f"Not valid default case: {defaults}")
-                return
+        self.add(defaults, instance_name='__defaults__', remove_duplicates=False)
+        self.ods['__defaults__'].gen_info()
+        self.defaults = copy(self.ods['__defaults__'].input_set_len_1)
         logger.info(f"Default values from {defaults}:")
         for key, val in self.defaults.items():
             logger.info(f"\t{key:26s}  {val}")
@@ -486,7 +484,7 @@ class ODS:
     # Methods that add to the existing self.ods
     def new_record(self, **kwargs):
         """
-        Append a new record to self.ods[instance_name].  Uses self.defaults to populate missing fields.
+        Append a new record to self.ods[instance_name] with kwargs.
 
         This is uusually called by self.add().
 
@@ -514,6 +512,8 @@ class ODS:
             Flag to cull duplicates after adding
 
         """
+        if inp is None:  # Nothing will happen.
+            return
         instance_name = kwargs['instance_name'] if 'instance_name' in kwargs else None
         if isinstance(inp, dict):
             self.new_record(inp, instance_name=instance_name)
@@ -554,7 +554,7 @@ class ODS:
 
     def _add_from_file(self, data_file_name, instance_name=None, sep='auto', replace_char=None, header_map=None, remove_duplicates=True):
         """
-        Append new records from a data file to self.ods; assumes the first line is a header.
+        Append new records from a json file or a data file assuming the first line is a header.
 
         Parameters
         ----------
