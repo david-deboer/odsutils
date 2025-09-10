@@ -7,7 +7,7 @@ from . import ods_timetools as timetools
 DEFAULT_WORKING_INSTANCE = 'primary'
 PLOT_AZEL = 'Az vs El'
 PLOT_TIMEEL = 'Time vs El'
-REF_LATEST_TIME = timetools.interpret_date('2030-12-31T23:59', fmt='Time')
+REF_LATEST_TIME = timetools.interpret_date('now+10000h', fmt='Time')
 REF_EARLIEST_TIME = timetools.interpret_date('2020-01-01T00:00', fmt='Time')
 
 
@@ -26,7 +26,6 @@ class ODSInstance:
         """
         self.instance_name = instance_name
         self.standard = Standard(version=version)
-        self.input = 'init'
         self.entries = []
         self.valid_records = []
         self.invalid_records = {}
@@ -39,6 +38,8 @@ class ODSInstance:
     def new_record(self, entry={}, defaults={}):
         """
         Add a new record, with each value set to None, then apply defaults, then new fields and append to entries.
+
+        This is used to add ALL records to instance.
 
         Parameter
         ---------
@@ -66,8 +67,9 @@ class ODSInstance:
         ---------
         entry_num : int
             Entry number to update
-        entry_updates : dict
+        entry_updates : dict or str
             Dictionary containing new fields.
+            If str it must be 'delete'
 
         Return
         ------
@@ -77,61 +79,19 @@ class ODSInstance:
         if entry_num >= len(self.entries):
             return 0
         ctr = 0
-        for key, val in entry_updates.items():
-            if key in self.standard.ods_fields:
-                self.entries[entry_num][key] = self.dump(key, val, fmt='InternalRepresentation')
-                ctr += 1
+        if entry_updates == 'delete':
+            self.entries.pop(entry_num)
+            self.gen_info()
+            ctr = 1
+        elif isinstance(entry_updates, dict):
+            ctr = 0
+            for key, val in entry_updates.items():
+                if key in self.standard.ods_fields:
+                    self.entries[entry_num][key] = self.dump(key, val, fmt='InternalRepresentation')
+                    ctr += 1
         if ctr:
             self.gen_info()
         return ctr
-
-    def read(self, ods_input):
-        """
-        Read in an existing ods file or dictionary and pull out input sets.  This appends to any existing entries.
-
-        Checking is done in ODS (arguably should probably be done here)
-
-        Parameter
-        ---------
-        ods_input : str or dict
-            Name of ods json file or dict
-
-        Attributes
-        ----------
-        input : str
-            The supplied ods file name or source
-        entries : list
-            List of ods records that is manipulated
-        number_of_records : int
-            Number of records in ods instance
-        input_sets : set
-            List of input sets and invalid keys -- set in gen_info
-        number_of_records : int
-            Number of records (entries) -- set in gen_info
-
-        """
-        if isinstance(ods_input, dict):
-            input_ods_data = ods_input
-            self.input = 'dictionary'
-        elif isinstance(ods_input, list):
-            input_ods_data = {self.standard.data_key: input_ods_data}
-            self.input = 'list'
-        elif isinstance(ods_input, str):
-            if ods_input.startswith('http'):
-                input_ods_data = tools.get_url(ods_input, fmt='json')
-            else:
-                input_ods_data = tools.read_json_file(ods_input)
-            self.input = ods_input 
-        else:
-            return False
-
-        if not input_ods_data:
-            return False
-
-        if self.standard.data_key in input_ods_data:  # In case it reads in an ODS file, we just want the list
-            input_ods_data = input_ods_data[self.standard.data_key]
-        self.entries += self.dump('all', input_ods_data, fmt='InternalRepresentation')
-        return True
 
     def sort(self, keyorder='sort_order_time', collapse=True, reverse=False):
         """
@@ -173,8 +133,7 @@ class ODSInstance:
             Time of latest record
 
         """
-        print("DEBUGGING _ REMOVE RETURN IN GEN_INFO")
-        return
+
         self.earliest = REF_LATEST_TIME
         self.latest = REF_EARLIEST_TIME
         self.number_of_records = len(self.entries)
@@ -221,25 +180,20 @@ class ODSInstance:
         """
         fmt = 'Time' if fmt == 'InternalRepresentation' else fmt
         fmt = 'isoformat' if fmt == 'ExternalFormat' else fmt
-        print(key, val)
-        if key == 'all':
+        if key == 'all':  # I probably don't need this anymore
             if isinstance(val, list):
                 entries = []
                 for entry in val:
                     entries.append(self.dump('all', entry, fmt=fmt))
-                print("RETURNING ENTRIES", entries)
                 return entries
             elif isinstance(val, dict):
                 this_entry = {}
                 for tkey, tval in val.items():
                     this_entry[tkey] = self.dump(tkey, tval, fmt=fmt)
-                print("RETURNING THIS ENTRY", this_entry)
-                return [this_entry]
+                return this_entry
         elif key in self.standard.time_fields:
-            print("DUMPING TIME", val)
             return timetools.interpret_date(val, fmt=fmt)
         else:
-            print("RETURNING VAL", val)
             return val
 
     def view(self, order=['src_id', 'src_start_utc', 'src_end_utc'], number_per_block=5):

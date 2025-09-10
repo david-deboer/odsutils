@@ -222,12 +222,14 @@ class ODS:
         self.new_ods_instance('__defaults__', version=version, set_as_working=False, overwrite=True)
         if defaults is None:
             return
+        self._flag_generate_instance_report = False
         self.add(defaults, instance_name='__defaults__', remove_duplicates=False)
         self.ods['__defaults__'].gen_info()
         self.defaults = copy(self.ods['__defaults__'].input_set_len_1)
         logger.info(f"Default values from {defaults}:")
         for key, val in self.defaults.items():
             logger.info(f"\t{key:26s}  {val}")
+        self._flag_generate_instance_report = True
 
     def online_ods_monitor(self, url="https://www.seti.org/sites/default/files/HCRO/ods.json", logfile='online_ods_mon.txt', cols='all', sep=','):
         """
@@ -487,7 +489,7 @@ class ODS:
         """
         Append a new record to self.ods[instance_name] with kwargs.
 
-        This is uusually called by self.add().
+        This is usually called by self.add().
 
         """
         instance_name = self.get_instance_name(kwargs['instance_name'] if 'instance_name' in kwargs else None)
@@ -495,7 +497,7 @@ class ODS:
 
     def add(self, inp, **kwargs):
         """
-        Appends a new ods record to self.ods supplied as a dictionary
+        Appends a new ods record to self.ods[instance_name].entries.
 
         Parameters
         ----------
@@ -575,16 +577,19 @@ class ODS:
 
         """
         instance_name = self.get_instance_name(instance_name)
-        self.data_file_name = data_file_name
 
-        if self.data_file_name.endswith('.json'):
-            self.ods[instance_name].read(self.data_file_name)
+        if data_file_name.startswith('http'):
+            ods_input = tools.get_url(data_file_name, fmt='json')
+        elif data_file_name.endswith('.json'):
+            ods_input = tools.read_json_file(data_file_name)
         else:
-            obs_list = tools.read_data_file(self.data_file_name, sep=sep, replace_char=replace_char, header_map=header_map, instance_name=instance_name)
-            obs_records = []
+            obs_list = tools.read_data_file(data_file_name, sep=sep, replace_char=replace_char, header_map=header_map, instance_name=instance_name)
+            ods_input = []
             for _, row in obs_list.iterrows():
-                obs_records.append(row.to_dict())
-            self.add(obs_records, instance_name=instance_name, remove_duplicates=remove_duplicates)
+                ods_input.append(row.to_dict())
+        if isinstance(ods_input, dict) and self.ods[instance_name].standard.data_key in ods_input:
+                ods_input = ods_input[self.ods[instance_name].standard.data_key]               
+        self.add(ods_input, instance_name=instance_name, remove_duplicates=remove_duplicates)
 
     ######################################OUTPUT##################################
     # Methods that show/save_to_file ods instance
