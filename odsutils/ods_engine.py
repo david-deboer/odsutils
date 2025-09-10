@@ -177,27 +177,6 @@ class ODS:
             return instance_name
         logger.error(f"{instance_name} does not exist -- try making it with self.new_ods_instance or providing a different instance_name.")
 
-    def read_ods(self, ods_input, instance_name=None):
-        """
-        Read in ods data from a file or input dictionary in same format.
-
-        Parameters
-        ----------
-        ods_input : str
-            ODS input, either filename or dictionary.
-        instance_name : str, None
-            Name of instance to use
-
-        """
-        instance_name = self.get_instance_name(instance_name)
-        is_valid = self.ods[instance_name].read(ods_input)
-        if not is_valid:
-            logger.warning(f"Failed to read {ods_input} -- keeping empty instance.")
-            return False
-        logger.info(f"Read {self.ods[instance_name].number_of_records} records from {self.ods[instance_name].input}")
-        self.instance_report(instance_name=instance_name)
-        return True
-
     def instance_report(self, instance_name=None):
         instance_name = self.get_instance_name(instance_name)
         number_of_invalid_records = len(self.ods[instance_name].invalid_records)
@@ -489,26 +468,72 @@ class ODS:
         self.ods[instance_name].gen_info()
         logger.info(f"retaining {self.ods[instance_name].number_of_records} of {starting_number}")
 
-
-    ##############################################ADD############################################
-    # Methods that add to the existing self.ods
-
-    def add_new_record(self, **kwargs):
+    def update_instance_meta(self, instance_name=None):
         """
-        Append a new record to self.ods.
+        Update the metadata for a specific instance.
+
+        Parameter
+        ---------
+        instance_name : str or None
+            Name of instance to use
 
         """
-        instance_name = self.get_instance_name(kwargs['instance_name'] if 'instance_name' in kwargs else None)
-        self.ods[instance_name].new_record(kwargs, defaults=self.defaults)
+        instance_name = self.get_instance_name(instance_name)
         self.ods[instance_name].gen_info()
         self.instance_report(instance_name=instance_name)
 
-    def add_from_namespace(self, ns, instance_name=None):
+    ##############################################ADD############################################
+    # Methods that add to the existing self.ods
+    def new_record(self, **kwargs):
         """
-        Appends a new ods record to self.ods supplied as a Namespace
+        Append a new record to self.ods[instance_name].  Uses self.defaults to populate missing fields.
+
+        This is uusually called by self.add().
 
         """
-        self.add_new_record(instance_name=instance_name, **vars(ns))
+        instance_name = self.get_instance_name(kwargs['instance_name'] if 'instance_name' in kwargs else None)
+        update_meta = kwargs['update_meta'] if 'update_meta' in kwargs else False
+        self.ods[instance_name].new_record(kwargs, defaults=self.defaults)
+        if update_meta:
+            self.update_instance_meta(instance_name=instance_name)
+
+    def add(self, inp, **kwargs):
+        """
+        Appends a new ods record to self.ods supplied as a dictionary
+
+        Parameters
+        ----------
+        inp : dict, list of dicts, or object with attributes, or filename
+            Input record(s) to add
+
+        Optional keywords
+        -----------------
+        instance_name : str, None
+            Name of instance to use
+        remove_duplicates : bool
+            Flag to cull duplicates after adding
+
+        """
+        instance_name = kwargs['instance_name'] if 'instance_name' in kwargs else None
+        if isinstance(inp, dict):
+            self.new_record(inp, instance_name=instance_name)
+        elif isinstance(inp, list):
+            remove_duplicates = kwargs['remove_duplicates'] if 'remove_duplicates' in kwargs else True
+            for rec in inp:
+                self.add(rec, **kwargs)
+            if remove_duplicates:
+                self.cull_by_duplicate(instance_name=instance_name)
+        elif isinstance(inp, str):
+            self._add_from_file(inp, **kwargs)
+        else:
+            try:
+                data = vars(inp)
+                data.update({'instance_name': instance_name})
+                self.new_record(**data)
+            except:
+                logger.warning("Not a valid input type.")
+                return
+        self.update_instance_meta(instance_name=instance_name)
 
     def merge(self, from_ods, to_ods=ods_instance.DEFAULT_WORKING_INSTANCE, remove_duplicates=True):
         """
@@ -525,28 +550,9 @@ class ODS:
 
         """
         logger.info(f"Updating {to_ods} from {from_ods}")
-        self.add_from_list(self.ods[from_ods].entries, instance_name=to_ods, remove_duplicates=remove_duplicates)
+        self.add(self.ods[from_ods].entries, instance_name=to_ods, remove_duplicates=remove_duplicates)
 
-    def add_from_list(self, entries, instance_name=None, remove_duplicates=True):
-        """
-        Append a records to self.ods[instance_name], using defaults then entries.
-        
-        Parameters
-        ----------
-        entries : list of dicts
-            List of dictionaries containing ODS fields
-
-        """
-        instance_name = self.get_instance_name(instance_name)
-        for entry in entries:
-            self.ods[instance_name].new_record(entry, defaults=self.defaults)
-        logger.info(f"Read {len(entries)} records from list.")
-        if remove_duplicates:
-            self.cull_by_duplicate(instance_name=instance_name)
-        self.ods[instance_name].gen_info()
-        self.instance_report(instance_name=instance_name)
-
-    def add_from_file(self, data_file_name, instance_name=None, sep='auto', replace_char=None, header_map=None, remove_duplicates=True):
+    def _add_from_file(self, data_file_name, instance_name=None, sep='auto', replace_char=None, header_map=None, remove_duplicates=True):
         """
         Append new records from a data file to self.ods; assumes the first line is a header.
 
@@ -569,14 +575,17 @@ class ODS:
         """
         instance_name = self.get_instance_name(instance_name)
         self.data_file_name = data_file_name
-        obs_list = tools.read_data_file(self.data_file_name, sep=sep, replace_char=replace_char, header_map=header_map)
-        for _, row in obs_list.iterrows():
-            self.ods[instance_name].new_record(row.to_dict(), defaults=self.defaults)
-        logger.info(f"Read {len(obs_list.index)} records from {self.data_file_name}.")
-        if remove_duplicates:
-            self.cull_by_duplicate(instance_name=instance_name)
-        self.ods[instance_name].gen_info()
-        self.instance_report(instance_name=instance_name)
+
+        if self.data_file_name.endswith('.json'):
+            is_valid = self.ods[instance_name].read(self.data_file_name)
+            if is_valid:
+                self.instance_report(instance_name=instance_name)
+        else:
+            obs_list = tools.read_data_file(self.data_file_name, sep=sep, replace_char=replace_char, header_map=header_map, instance_name=instance_name)
+            obs_records = []
+            for _, row in obs_list.iterrows():
+                obs_records.append(row.to_dict())
+            self.add(obs_records, instance_name=instance_name, remove_duplicates=remove_duplicates)
 
     ######################################OUTPUT##################################
     # Methods that show/save ods instance

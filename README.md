@@ -48,6 +48,7 @@ Note that in specifying an observation, you typically don't want to include all 
 
 When you make an ods class instance via `ods = ods.ods_engine(...)` it creates a default ODS instance, which is probably all you need (that is, you don't have to worry about creating or handling multiple ODS instances) -- you just need to add ODS records to it.
 
+THe primary (basically only) method to add records is `ods.add(...)`.  It takes a dictionary, a list of dictionaries or a filename.
 
 Note that ods.read_ods() can also read in a file if you give it a filename, or pull a json from the web if given a URL.
 `ods.assemble_ods` will cull old entries, as well as remove duplicates.
