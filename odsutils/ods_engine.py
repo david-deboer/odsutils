@@ -48,6 +48,7 @@ class ODS:
         self.version = version
         self.ods = {}
         self.defaults = {}
+        self._flag_generate_instance_report = True
         self.new_ods_instance(working_instance, version=version, set_as_working=True)
         self.check = ODSCheck(alert=self.log_settings.conlog, standard=self.ods[working_instance].standard)
         if 'defaults' in kwargs:
@@ -86,7 +87,7 @@ class ODS:
 
         Parameters
         ----------
-        diretory : str
+        directory : str
             Directory to search for ODS files (if a json filename is specified, will use its directory)
         post_to : str, None
             If not None, post the assembled ODS to this filename.
@@ -109,7 +110,7 @@ class ODS:
                 logger.warning(f"Initial instance {initial_instance} not found -- starting with empty ODS.")
         for ods_file in ods_files:
             self.new_ods_instance(instance_name=ods_file)
-            self.read_ods(ods_file, instance_name=ods_file)
+            self.add(ods_file, instance_name=ods_file)
             self.merge(from_ods=ods_file, to_ods=assembly_instance_name)
 
         self.cull_by_time('now', 'stale', instance_name=assembly_instance_name)
@@ -490,10 +491,7 @@ class ODS:
 
         """
         instance_name = self.get_instance_name(kwargs['instance_name'] if 'instance_name' in kwargs else None)
-        update_meta = kwargs['update_meta'] if 'update_meta' in kwargs else False
         self.ods[instance_name].new_record(kwargs, defaults=self.defaults)
-        if update_meta:
-            self.update_instance_meta(instance_name=instance_name)
 
     def add(self, inp, **kwargs):
         """
@@ -519,8 +517,10 @@ class ODS:
             self.new_record(inp, instance_name=instance_name)
         elif isinstance(inp, list):
             remove_duplicates = kwargs['remove_duplicates'] if 'remove_duplicates' in kwargs else True
+            self._flag_generate_instance_report = False
             for rec in inp:
                 self.add(rec, **kwargs)
+            self._flag_generate_instance_report = True
             if remove_duplicates:
                 self.cull_by_duplicate(instance_name=instance_name)
         elif isinstance(inp, str):
@@ -533,7 +533,8 @@ class ODS:
             except:
                 logger.warning("Not a valid input type.")
                 return
-        self.update_instance_meta(instance_name=instance_name)
+        if self._flag_generate_instance_report:
+            self.update_instance_meta(instance_name=instance_name)
 
     def merge(self, from_ods, to_ods=ods_instance.DEFAULT_WORKING_INSTANCE, remove_duplicates=True):
         """
@@ -577,9 +578,7 @@ class ODS:
         self.data_file_name = data_file_name
 
         if self.data_file_name.endswith('.json'):
-            is_valid = self.ods[instance_name].read(self.data_file_name)
-            if is_valid:
-                self.instance_report(instance_name=instance_name)
+            self.ods[instance_name].read(self.data_file_name)
         else:
             obs_list = tools.read_data_file(self.data_file_name, sep=sep, replace_char=replace_char, header_map=header_map, instance_name=instance_name)
             obs_records = []
@@ -588,7 +587,7 @@ class ODS:
             self.add(obs_records, instance_name=instance_name, remove_duplicates=remove_duplicates)
 
     ######################################OUTPUT##################################
-    # Methods that show/save ods instance
+    # Methods that show/save_to_file ods instance
 
     def view_ods(self, order=['src_id', 'src_start_utc', 'src_end_utc'], number_per_block=5, instance_name=None):
         """
