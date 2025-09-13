@@ -14,7 +14,9 @@ setup_args = {
     'author_email': "david.r.deboer@gmail.edu",
     'version': '0.5.0',
     'scripts': glob.glob('scripts/*'),
-    'packages': ['odsutils']
+    'packages': ['odsutils'],
+    'include_package_data': True,
+    'package_data': {"odsutils": ['data/*.json']}
 }
 
 if __name__ == '__main__':
