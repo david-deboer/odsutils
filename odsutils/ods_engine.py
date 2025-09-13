@@ -4,6 +4,7 @@ from . import ods_instance, logger_setup, __version__
 from . import ods_tools as tools
 from . import ods_timetools as timetools
 import logging
+import os.path as op
 from . import LOG_FILENAME, LOG_FORMATS
 
 # Set up the logger
@@ -96,7 +97,7 @@ class ODS:
             
         """
         from glob import glob
-        import os.path as op
+
         if directory.endswith('json'):
             directory = op.dirname(directory)
         assembly_instance_name = 'assembly'
@@ -214,14 +215,19 @@ class ODS:
 
         Attribute
         ---------
-        defaults : dict
+        defaults : dict or str or list (anything readable by a self.add() call)
             Dictionary containing whatever ods records defaults are provided.
+            If str and startswith '$', then it is a filename in the odsutils/data directory.
+
         new_ods_instance : creates a new instance called '__defaults__' to hold the defaults input
 
         """
         self.new_ods_instance('__defaults__', version=version, set_as_working=False, overwrite=True)
         if defaults is None:
             return
+        elif defaults.startswith('$'):
+            from . import DATA_PATH
+            defaults = op.join(DATA_PATH, defaults[1:])
         self._flag_generate_instance_report = False
         self.add(defaults, instance_name='__defaults__', remove_duplicates=False)
         self.ods['__defaults__'].gen_info()
