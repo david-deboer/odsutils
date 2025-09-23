@@ -255,11 +255,11 @@ class ODS:
 
         """
         self.new_ods_instance('from_web')
-        self.read_ods(url, instance_name='from_web')
+        self.add(url, instance_name='from_web')
         self.cull_by_time(instance_name='from_web', cull_by='inactive')
 
         self.new_ods_instance('from_log')
-        self.add_from_file(logfile, instance_name='from_log', sep=sep)
+        self.add(logfile, instance_name='from_log', sep=sep)
         self.merge('from_web', 'from_log', remove_duplicates=True)
 
         self.ods['from_log'].export2file(logfile, cols=cols, sep=sep)
