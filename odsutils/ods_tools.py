@@ -77,7 +77,14 @@ def read_data_file(file_name, sep='auto', replace_char=None, header_map=None):
                 sep = s
                 break
 
-    data = pd.read_csv(file_name, sep=sep, skipinitialspace=True)
+    try:
+        data = pd.read_csv(file_name, sep=sep, skipinitialspace=True)
+    except FileNotFoundError:
+        print(f"File not found: {file_name}")
+        return False
+    except pd.errors.ParserError:
+        print(f"Error parsing {file_name}")
+        return False
 
     if replace_char is not None:
         if not isinstance(replace_char, dict):

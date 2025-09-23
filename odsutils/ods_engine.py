@@ -591,8 +591,9 @@ class ODS:
         else:
             obs_list = tools.read_data_file(data_file_name, sep=sep, replace_char=replace_char, header_map=header_map)
             ods_input = []
-            for _, row in obs_list.iterrows():
-                ods_input.append(row.to_dict())
+            if obs_list:
+                for _, row in obs_list.iterrows():
+                    ods_input.append(row.to_dict())
         if isinstance(ods_input, dict) and self.ods[instance_name].standard.data_key in ods_input:
                 ods_input = ods_input[self.ods[instance_name].standard.data_key]               
         self.add(ods_input, instance_name=instance_name, remove_duplicates=remove_duplicates)
