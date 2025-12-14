@@ -237,7 +237,7 @@ class ODS:
             logger.info(f"\t{key:26s}  {val}")
         self._flag_generate_instance_report = True
 
-    def online_ods_monitor(self, url="https://archive.seti.org/sites/default/files/HCRO/ods.json", logfile='online_ods_mon.txt', cols='all', sep=','):
+    def online_ods_monitor(self, url="https://ods.hcro.org/ods.json", logfile='online_ods_mon.txt', cols='all', sep=','):
         """
         Checks the online ODS URL against a local log to update for active records.  Typically used in a crontab to monitor
         the active ODS records posted.
@@ -264,7 +264,7 @@ class ODS:
 
         self.ods['from_log'].export2file(logfile, cols=cols, sep=sep)
 
-    def check_active(self, ctime='now', read_from="https://archive.seti.org/sites/default/files/HCRO/ods.json"):
+    def check_active(self, ctime='now', read_from="https://ods.hcro.org/ods.json"):
         """Check which entry is active at ctime, if any."""
         self.new_ods_instance(instance_name='check_active')
         if isinstance(read_from, str):
