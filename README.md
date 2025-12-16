@@ -6,9 +6,9 @@ Operational Data Sharing (ODS) is a protocol developed by NRAO in order to facil
 
 The standard itself is defined is the `ods_standard.py` module (see NRAO website).  The ODS standard is still under development and will evolve and different versions may be implemented there.  There are currently two standards, denoted "A" and "B".  "A" is deprecated.
 
-An **ODS file** is a json file with one top key (`ods_data`) containing a list of dictionaries with the parameters.  Each element in this list is an **ods_record**.
+An **ODS file** is a json file with one top key (`ods_data`) containing a list of key-value pairs with the parameters (so effectively a list of dictionaries).  Each element in this list is an **ods_record**.
 
-An **ODS instance** is a list of ods_records and is handled in the `ods_instance.py` module.  "Instances" are named lists of ODS records, and sometimes it is helpful to have multiple in play.  For example, when a new composite ODS file is assembled, multiple instances are created and merged.
+An **ODS instance** is a list of ods_records per above and is handled in the `ods_instance.py` module.  "Instances" are named lists of ODS records, and sometimes it is helpful to have multiple in play.  For example, when a new composite ODS file is assembled, multiple instances are created and merged.
 
 ODS instance(s) can be handled in the **ods_engine.py** module, which is generally the only one invoked.
 
@@ -24,22 +24,22 @@ The code snippet below is for the just posting case:
 
 ```
 from odsutils import ods_engine
-ods = ods_engine.ODS(conlog='WARNING', defaults='<default file name>')
+ods = ods_engine.ODS(defaults='ods_defaults.json')
 ...see create an ODS file below
 ods.post_ods('directory_for_uploading_file/ods.json')
 ```
+
+Note that the `defaults` keyword gives either the filename or a dictionary for the default ods instance values.  Without it you will need to set all parameters explicitly for a given standard.  There are some built-in defaults accessed by a '$'; e.g. `defaults = '$ods_defaults_ata_B.json'`.
 
 This code snippet handles the pipeline for the full case:
 
 ```
 from odsutils import ods_engine
-ods = ods_engine.ODS(conlog='WARNING', defaults='<default file name>')
+ods = ods_engine.ODS(defaults='$ods_defaults_ata_B.json')
 ...see create an ODS file below
 ods.post_ods('/directory_for_holding_ODS_files/ods_descriptor.json')
 ods.assemble_ods('/directory_for_holding_ODS_files', post_to='/directory_for_uploading_file/ods.json')
 ```
-
-In the class instance call, `conlog='WARNING'` just sets the logging level and `default=<default file name>` sets a default file, as discussed below.  If no default file is given, None is used.
 
 # Create an ODS file
 As mentioned above, an ODS file is a list of ODS records in the JSON format and everything is under one key called `ods_data`.  Each ODS record is an observation, but each record in an ODS file must have the complete set of ODS keys.
@@ -56,7 +56,7 @@ The code snippet below shows the simplest way to create an ODS file, assuming th
 
 ```
 from odsutils import ods_engine
-ods = ods_engine.ODS(conlog='WARNING', defaults='ods_defaults.json')
+ods = ods_engine.ODS()
 ods.add([{"src_id": "Source1",
           "src_ra_j2000_deg": 130.86,
           "src_dec_j2000_deg": 18.15,

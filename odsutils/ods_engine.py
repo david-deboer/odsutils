@@ -24,27 +24,34 @@ class ODS:
     using the 'self.ods[working_instance].entries' attribute.
 
     """
-    def __init__(self, version='latest', working_instance=ods_instance.DEFAULT_WORKING_INSTANCE,
+    def __init__(self, version='latest',
+                 defaults=None,
+                 working_instance=ods_instance.DEFAULT_WORKING_INSTANCE,
                  conlog='WARNING', filelog=False, **kwargs):
         """
         Parameters
         ----------
         version : str
             Version of default ODS standard -- note that instances can be different
+        defaults : dict, str, None
+            Default values for the ODS instance.  If str and startswith '$', then it is a filename in the odsutils/data directory.
         working_instance : str
             Key to use for the ods instance in use.
         conlog : str, False
             One of the logging levels for console: 'DEBUG', 'INFO', 'WARNING', 'ERROR'
         filelog : str, False
             One of the logging levels for file: 'DEBUG', 'INFO', 'WARNING', 'ERROR'
-        **kwargs : kept to catch keywords
-            'defaults' : dict, str, None
+        **kwargs : kept to catch keywords, but all are deprecated
+            Optional keywords -- currently none used.
 
         """
         self.log_settings = logger_setup.Logger(logger, conlog=conlog, filelog=filelog, log_filename=LOG_FILENAME, path=None,
                                                 filelog_format=LOG_FORMATS['filelog_format'], conlog_format=LOG_FORMATS['conlog_format'])
         logger.info(f"{__name__} ver. {__version__}")
 
+        if len(kwargs):
+            logger.warning(f"Deprecated keywords passed to ODS(): {', '.join(kwargs.keys())}")
+        ###########################################INITIALIZE#####################################
         # ###
         self.version = version
         self.ods = {}
@@ -52,8 +59,7 @@ class ODS:
         self._flag_generate_instance_report = True
         self.new_ods_instance(working_instance, version=version, set_as_working=True)
         self.check = ODSCheck(alert=self.log_settings.conlog, standard=self.ods[working_instance].standard)
-        if 'defaults' in kwargs:
-            self.get_defaults(kwargs['defaults'])
+        self.get_defaults(defaults)
 
     def __enter__(self):
         return self
@@ -495,7 +501,7 @@ class ODS:
         """
         Append a new record to self.ods[instance_name] with kwargs.
 
-        This is usually called by self.add().
+        This is usually called by self.add() but can be called directly.
 
         """
         instance_name = self.get_instance_name(kwargs['instance_name'] if 'instance_name' in kwargs else None)
