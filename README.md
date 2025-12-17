@@ -77,11 +77,11 @@ ods.post_ods('ods_myproj.json')
 
 # Scripts
 
-Additionally, there are two scripts
-\begin{itemize}
-    \item {\tt odsuser.py}:  has options allowing access to various {\tt ods\_engine.py} methods.
-    \item {\tt ods\_online\_monitor.py}: grabs and saves a summary of active ODS records from a URL
-\end{itemize}
+Additionally, there are three scripts
+
+	odsuser.py:  has options allowing access to various {\tt ods\_engine.py} methods.
+	ods\_online\_monitor.py: grabs and saves a summary of active ODS records from a URL
+	ods\_show\_defaults.py: shows information in default files
 
 
 ACKNOWLEDGEMENTS
