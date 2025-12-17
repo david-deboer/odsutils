@@ -56,7 +56,7 @@ The code snippet below shows the simplest way to create an ODS file, assuming th
 
 ```
 from odsutils import ods_engine
-ods = ods_engine.ODS()
+ods = ods_engine.ODS(defaults='ods_defaults.json')
 ods.add([{"src_id": "Source1",
           "src_ra_j2000_deg": 130.86,
           "src_dec_j2000_deg": 18.15,
@@ -79,7 +79,7 @@ ods.post_ods('ods_myproj.json')
 
 Additionally, there are three scripts
 
-	odsuser.py:  has options allowing access to various {\tt ods\_engine.py} methods.
+	odsuser.py:  has options allowing access to various ods\_engine.py methods.
 	ods\_online\_monitor.py: grabs and saves a summary of active ODS records from a URL
 	ods\_show\_defaults.py: shows information in default files
 
