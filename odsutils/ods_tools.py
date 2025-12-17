@@ -152,6 +152,9 @@ def get_url(url, fmt='json'):
         return False
 
     if fmt == 'json':
+        if 'application/json' not in xxx.headers.get('Content-Type', ''):
+            print(f"URL {url} did not return json data. ({xxx.headers.get('Content-Type', '')})")
+            return {}
         return xxx.json()
     elif fmt == 'txt':
         return xxx.text.splitlines()

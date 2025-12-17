@@ -280,8 +280,12 @@ class ODS:
         ctime = timetools.interpret_date(ctime, fmt='Time')
         active = []
         for i, entry in enumerate(self.ods['check_active'].entries):
-            if entry['src_start_utc'] <= ctime <= entry['src_end_utc']:
-                active.append(i)
+            if 'src_start_utc' in entry and 'src_end_utc' in entry:
+                try:
+                    if entry['src_start_utc'] <= ctime <= entry['src_end_utc']:
+                        active.append(i)
+                except TypeError:
+                    continue
         return active
 
 
