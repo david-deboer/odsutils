@@ -142,12 +142,9 @@ class ODS:
             Flag to reset the working_instance to this instance_name.
 
         """
-        if instance_name in self.ods.keys():
-            logger.warning(f"ODS instance {instance_name} already exists.")
-            if not overwrite:
-                return
-            else:
-                logger.info(f"Overwriting ODS instance {instance_name}.")
+        if instance_name in self.ods.keys() and not overwrite:
+            logger.warning(f"ODS instance {instance_name} already exists -- ignoring.")
+            return
         self.ods[instance_name] = ods_instance.ODSInstance(
             instance_name = instance_name,
             version = version
@@ -272,7 +269,7 @@ class ODS:
 
     def check_active(self, ctime='now', read_from="https://ods.hcro.org/ods.json"):
         """Check which entry is active at ctime, if any."""
-        self.new_ods_instance(instance_name='check_active')
+        self.new_ods_instance(instance_name='check_active', overwrite=True)
         if isinstance(read_from, str):
             self.add(read_from, instance_name='check_active')
         else:
