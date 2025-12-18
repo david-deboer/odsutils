@@ -19,8 +19,8 @@ else:
     if args.sys:
         args.inputs = f"${args.inputs}"
     ods = ods_engine.ODS(version='latest', defaults=args.inputs)
-    print(args.inputs)
-    for k, v in ods.defaults.items():
-        print(f"\t{k}: {v}")
+    ods.add(args.inputs)
+    print(f"ODS entries from {args.inputs}:")
+    ods.view_ods()
     active = ods.check_active('now', read_from=args.inputs)
     print(f"Is active: {active}")
