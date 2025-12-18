@@ -4,8 +4,8 @@ from odsutils import ods_engine
 
 ap = argparse.ArgumentParser()
 ap.add_argument('inputs', help='Inputs to show', nargs='?', default=None)
-ap.add_argument('-s', '--sys', help='Show available system defaults files', action='store_true')
 args = ap.parse_args()
+
 
 if args.inputs is None:
     from odsutils import DATA_PATH
@@ -14,15 +14,14 @@ if args.inputs is None:
     print("Available system defaults files:")
     for df in defaults_files:
         print('\t', df.split('/')[-1])
-    print("To view, use name and -s flag.")
+    print("To view, use name but prepend a '$' and don't forget to escape it.")
 else:
-    if args.sys:
-        args.inputs = f"${args.inputs}"
     ods = ods_engine.ODS(version='latest', defaults=args.inputs)
-    if args.inputs[0] != '$':
-        ods.add(args.inputs)
-    else:
+    if args.inputs[0] == '$':
         ods.new_record()
+    else:
+        ods.add(args.inputs)
+
     print(f"ODS entries from {args.inputs}:")
     ods.view_ods()
     active = ods.check_active('now', read_from=args.inputs)
