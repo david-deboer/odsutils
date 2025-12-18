@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "odsutils"
+version = "0.4.0"
+description = "Operational Data Sharing utilities"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "David DeBoer", email = "david.r.deboer@gmail.com" }]
+keywords = ["ODS", "Operational Data Sharing", "radio astronomy", "satellite avoidance"]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.urls]
+Homepage = "https://github.com/david-deboer/odsutils"
+Repository = "https://github.com/david-deboer/odsutils"
+Issues = "https://github.com/david-deboer/odsutils/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["odsutils*"]
+
+# Keep installing the existing scripts/ directory (no code rewrite needed)
+[tool.setuptools]
+script-files = [
+  "scripts/odsuser.py",
+  "scripts/ods_online_monitor.py",
+  "scripts/ods_show_defaults.py",
+]
+
+# Ensure JSON defaults/etc ship inside the wheel if they live under odsutils/
+[tool.setuptools.package-data]
+odsutils = ["**/*.json"]
+
