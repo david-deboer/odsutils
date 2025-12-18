@@ -219,7 +219,7 @@ class ODSInstance:
             header = ['Field    \    #'] + [str(i) for i in blk]
             data = []
             for key in order:
-                row = [key] + [self._dump(key, self.entries[i][key], fmt='isoformat') for i in blk]
+                row = [key] + [self._dump(key, self.entries[i].get(key, ''), fmt='isoformat') for i in blk]
                 data.append(row)
             tble = tabulate(data, headers=header)
             full_table += tble + '\n' + '=' * len(tble.splitlines()[1]) + '\n'

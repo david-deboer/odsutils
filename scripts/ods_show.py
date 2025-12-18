@@ -24,5 +24,5 @@ else:
 
     print(f"ODS entries from {args.inputs}:")
     ods.view_ods()
-    active = ods.check_active('now', read_from=args.inputs)
+    active = ods.check_active()
     print(f"Is active: {active}")

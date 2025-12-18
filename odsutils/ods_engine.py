@@ -267,16 +267,22 @@ class ODS:
 
         self.ods['from_log'].export2file(logfile, cols=cols, sep=sep)
 
-    def check_active(self, ctime='now', read_from="https://ods.hcro.org/ods.json"):
+    def check_active(self, ctime='now', read_from=None, instance_name=None):
         """Check which entry is active at ctime, if any."""
-        self.new_ods_instance(instance_name='check_active', overwrite=True)
-        if isinstance(read_from, str):
-            self.add(read_from, instance_name='check_active')
+        if read_from is None:
+            instance = self.get_instance_name(instance_name)
         else:
-            logger.info("Not reading new ODS instance for check_active.")
+            instance = 'check_active'
+            self.new_ods_instance(instance_name=instance, overwrite=True)
+            if isinstance(read_from, str):
+                self.add(read_from, instance_name=instance)
+            else:
+                logger.info("Not reading new ODS instance for check_active.")
+                return []
+
         ctime = timetools.interpret_date(ctime, fmt='Time')
         active = []
-        for i, entry in enumerate(self.ods['check_active'].entries):
+        for i, entry in enumerate(self.ods[instance].entries):
             if 'src_start_utc' in entry and 'src_end_utc' in entry:
                 try:
                     if entry['src_start_utc'] <= ctime <= entry['src_end_utc']:
