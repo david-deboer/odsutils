@@ -22,3 +22,5 @@ else:
     print(args.inputs)
     for k, v in ods.defaults.items():
         print(f"\t{k}: {v}")
+    active = ods.check_active('now', read_from=args.inputs)
+    print(f"Is active: {active}")
