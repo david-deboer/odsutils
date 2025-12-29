@@ -129,7 +129,7 @@ def write_data_file(file_name, ods, cols, sep=','):
             print(sep.join(row), file=fp)
 
 
-def get_url(url, fmt='json'):
+def get_url(url, fmt='json', timeout=8  ):
     """
     Read a json url.
 
@@ -146,7 +146,7 @@ def get_url(url, fmt='json'):
     import requests
 
     try:
-        xxx = requests.get(url)
+        xxx = requests.get(url, timeout=timeout)
     except Exception as e:
         print(f"Error reading {url}:  {e}")
         return False
