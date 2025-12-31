@@ -1,5 +1,6 @@
 from os.path import join
-__version__ = "1.0.0"
+from importlib.metadata import version
+__version__ = version('odsutils')
 
 try:
     import warnings

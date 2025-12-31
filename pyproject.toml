@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "odsutils"
-version = "0.4.0"
+version = "1.0.0"
 description = "Operational Data Sharing utilities"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -13,7 +13,7 @@ dependencies = [
   "zoneinfo"
 ]
 license = { text = "MIT" }
-authors = [{ name = "David DeBoer", email = "david.r.deboer@gmail.com" }]
+authors = [{ name = "David DeBoer", email = "david.r.deboer@gmail.com"}]
 keywords = ["ODS", "Operational Data Sharing", "radio astronomy", "satellite avoidance"]
 classifiers = [
   "License :: OSI Approved :: MIT License",
@@ -29,6 +29,6 @@ Issues = "https://github.com/david-deboer/odsutils/issues"
 [project.scripts]
 odsuser = "scripts.odsuser"
 
-[tool.setuptools]
-include-package-data = true
+[tool.setuptools.package_data]
+"ods_package" = ["data/*.json"]
 
