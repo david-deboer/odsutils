@@ -105,14 +105,15 @@ def t_delta(t1, val, unit=None):
 
 def interpret_date(iddate, fmt='Time', NoneReturn=None):
     """
-    Interpret 'iddate' and return time or formated string.
+    Interpret 'iddate' and return time or formated string or TimeDelta
 
     Parameters
     ----------
-    iddate : datetime, Time, str, list
+    iddate : datetime, Time, str, list or interpreatable as float (TimeDelta)
         Day to be interpreted
     fmt : str
         Either a datetime format string (starting with %) or 'Time', 'isoformat', 'datetime'
+        If TimeDelta is desired, use fmt='sec', ...
     NoneReturn : None or intepretable
         What to return if input is None
 
@@ -123,6 +124,14 @@ def interpret_date(iddate, fmt='Time', NoneReturn=None):
     """
     if iddate is None:
         return None if NoneReturn is None else interpret_date(NoneReturn, fmt=fmt)
+    try:
+        val = float(iddate)
+        if fmt not in TUNITS:
+            fmt = 'sec'
+        return t_delta(None, val, fmt)
+    except:
+        pass
+
     if isinstance(iddate, list):
         iddate = [interpret_date(x, fmt=fmt, NoneReturn=NoneReturn) for x in iddate]
         if fmt == 'Time':
