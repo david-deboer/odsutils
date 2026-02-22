@@ -174,9 +174,9 @@ def listify(x, d={}, sep=',', NoneReturn=[], dtype=None):
     sep : str
         Separator to use if str
     NoneReturn : *
-        Return is input is None
+        Return if input is None
     dtype : type or None
-        Type of list elements to return
+        Type of list elements to return (if None, no conversion)
     
     Return
     ------
@@ -192,7 +192,7 @@ def listify(x, d={}, sep=',', NoneReturn=[], dtype=None):
     elif isinstance(x, str):
         if sep == 'auto':
             sep = ','
-        this = x.split(sep)
+        this = [_s.strip() for _s in x.split(sep)]
     else:
         this = [x]
     if dtype is None:
