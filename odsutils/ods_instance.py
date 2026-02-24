@@ -216,7 +216,7 @@ class ODSInstance:
         order = order + [x for x in self.standard.ods_fields if x not in order]
         full_table = ''
         for blk in blocks:
-            header = ['Field    \    #'] + [str(i) for i in blk]
+            header = ['Field    \\    #'] + [str(i) for i in blk]
             data = []
             for key in order:
                 row = [key] + [self._dump(key, self.entries[i].get(key, ''), fmt='isoformat') for i in blk]
