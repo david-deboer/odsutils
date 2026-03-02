@@ -5,7 +5,7 @@ from . import ods_tools as tools
 from . import ods_timetools as timetools
 import logging
 import os.path as op
-from . import LOG_FILENAME, LOG_FORMATS
+from . import LOG_FILENAME, LOG_FORMATS, SITES
 
 # Set up the logger
 logger = logging.getLogger(__name__)
@@ -231,6 +231,8 @@ class ODS:
         elif defaults.startswith('$'):
             from . import DATA_PATH
             defaults = op.join(DATA_PATH, defaults[1:])
+        elif defaults in SITES:
+            defaults = SITES[defaults]['defaults']
         self._flag_generate_instance_report = False
         self.add(defaults, instance_name='__defaults__', remove_duplicates=False)
         self.ods['__defaults__'].gen_info()
