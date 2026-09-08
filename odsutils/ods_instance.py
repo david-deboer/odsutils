@@ -1,3 +1,4 @@
+from collections.abc import Hashable
 from copy import copy
 from .ods_standard import Standard
 from . import ods_tools as tools
@@ -142,7 +143,9 @@ class ODSInstance:
             for key, val in entry.items():
                 if key in self.standard.ods_fields:
                     self.input_sets.setdefault(key, set())
-                    self.input_sets[key].add(val)
+                    # freq_actual_hz holds a list, which cannot go in a set.
+                    if isinstance(val, Hashable):
+                        self.input_sets[key].add(val)
                     if isinstance(entry[key], timetools.Time):
                         if key == self.standard.start and entry[key] < self.earliest:
                             self.earliest = copy(entry[key])

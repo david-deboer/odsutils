@@ -1,8 +1,8 @@
 from . import ods_timetools as timetools
 
 
-LATEST = 'B'
-AVAILABLE_STANDARDS = ['A', 'B']
+LATEST = 'Bmod'
+AVAILABLE_STANDARDS = ['A', 'B', 'Bmod']
 
 
 class Standard_Version_B:
@@ -28,20 +28,14 @@ class Standard_Version_B:
         'trk_rate_ra_deg_per_sec': float,
         'freq_lower_hz': float,
         'freq_upper_hz': float,
-        'freq_lower_actual_hz': float,
-        'freq_upper_actual_hz': float,
         'version': str,
         'dish_diameter_m': float,
         'subarray': int,
     }
 
-    # Fields that need not be present/populated for a record to be valid.
-    optional_fields = ['freq_lower_actual_hz', 'freq_upper_actual_hz']
-
     sort_order_time = ['src_start_utc', 'src_end_utc', 'site_id', 'site_lat_deg', 'site_lon_deg', 'site_el_m',
                        'src_id', 'corr_integ_time_sec', 'src_ra_j2000_deg', 'src_dec_j2000_deg', 'slew_sec',
                        'trk_rate_dec_deg_per_sec', 'trk_rate_ra_deg_per_sec', 'freq_lower_hz', 'freq_upper_hz',
-                       'freq_lower_actual_hz', 'freq_upper_actual_hz',
                        'version', 'dish_diameter_m', 'subarray']
 
 
@@ -59,6 +53,21 @@ class Standard_Version_B:
         }
         self.meta_fields = {'data_key': 'ods_data',
                             'time_fields': ['src_start_utc', 'src_end_utc']}
+
+class Standard_Version_Bmod(Standard_Version_B):
+    """
+    Standard B plus extension fields.
+
+    """
+    fields = dict(Standard_Version_B.fields)
+    # Bands actually being received, one per simultaneous tuning, as
+    # [{"freq_lower_hz": ..., "freq_upper_hz": ...}, ...].
+    fields['freq_actual_hz'] = list
+
+    # Fields that need not be present/populated for a record to be valid.
+    optional_fields = ['freq_actual_hz']
+
+    sort_order_time = Standard_Version_B.sort_order_time + ['freq_actual_hz']
 
 class Standard_Version_A:
     """
@@ -151,6 +160,8 @@ class Standard:
             self.standard = Standard_Version_A()
         elif self.version == 'B':
             self.standard = Standard_Version_B()
+        elif self.version == 'Bmod':
+            self.standard = Standard_Version_Bmod()
         else:
             raise ValueError(f"{self.version} is not an available standard.")
         self.ods_fields = self.standard.fields
@@ -198,7 +209,7 @@ class Standard:
             elif rec.get(key) is not None:
                 try:
                     _ = self.ods_fields[key](rec[key])
-                except ValueError:
+                except (TypeError, ValueError):  # list(scalar) raises TypeError
                     msg.append(f"{rec[key]} is wrong type for {key}")
                     is_valid = False
         for key in self.time_fields:
